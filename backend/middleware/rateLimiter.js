@@ -5,6 +5,7 @@ const apiLimiter = rateLimit({
   max: 300, // 300 requests per IP per window
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false, default: false },
   message: {
     success: false,
     message: 'Too many requests from this IP, please try again after 15 minutes.',
@@ -16,6 +17,7 @@ const authLimiter = rateLimit({
   max: 30, // 30 auth attempts per IP per window
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false, default: false },
   message: {
     success: false,
     message: 'Too many login or registration attempts. Please try again after 15 minutes.',
@@ -27,6 +29,7 @@ const otpLimiter = rateLimit({
   max: 5, // 5 OTP attempts per window
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false, default: false },
   message: {
     success: false,
     message: 'Too many OTP requests. Please wait a few minutes before requesting another code.',
