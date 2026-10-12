@@ -39,9 +39,11 @@ app.use('/api', async (req, res, next) => {
 });
 
 // Serve static frontend files and uploaded media
-const frontendDir = path.join(__dirname, '../frontend');
-app.use(express.static(frontendDir));
-app.use('/uploads', express.static(path.join(__dirname, '../frontend/uploads')));
+const staticDir = fs.existsSync(path.join(__dirname, '../public'))
+  ? path.join(__dirname, '../public')
+  : path.join(__dirname, '../frontend');
+app.use(express.static(staticDir));
+app.use('/uploads', express.static(path.join(staticDir, 'uploads')));
 
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
@@ -99,13 +101,18 @@ app.get('*', (req, res) => {
   }
 
   const cleanPath = req.path.replace(/^\//, '');
-  const directHtml = path.join(frontendDir, `${cleanPath}.html`);
+  const directHtml = path.join(staticDir, `${cleanPath}.html`);
 
   if (cleanPath && fs.existsSync(directHtml)) {
     return res.sendFile(directHtml);
   }
 
-  res.sendFile(path.join(frontendDir, 'index.html'));
+  const indexHtml = path.join(staticDir, 'index.html');
+  if (fs.existsSync(indexHtml)) {
+    return res.sendFile(indexHtml);
+  }
+
+  res.send('Lost2Found Campus API');
 });
 
 // Centralized Error Handler

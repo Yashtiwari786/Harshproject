@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lost2Found — College Campus Lost & Found System</title>
+  <meta name="description" content="Lost it? Found it? Get it back. Centralized digital lost & found management system for college campus.">
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Dynamic Navbar Container -->
+  <div id="navbarContainer"></div>
+
+  <!-- Hero Section with Glowing Ambient Mesh -->
+  <section class="hero-section">
+    <div class="container position-relative" style="z-index: 2;">
+      <div class="row align-items-center gy-5">
+        <div class="col-lg-7 animate-slide-up">
+          <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-white bg-opacity-10 border border-white border-opacity-20 mb-3 animate-float">
+            <span class="badge bg-success rounded-pill px-2 py-1"><i class="fa-solid fa-bolt"></i> Live</span>
+            <span class="small fw-semibold text-white">Campus-Wide Lost & Found Network</span>
+          </div>
+
+          <h1 class="hero-title mb-3">
+            Lost it? Found it?<br>
+            <span class="hero-gradient-text">Get it back.</span>
+          </h1>
+
+          <p class="hero-tagline mb-4">
+            A smarter, safer way to report lost items, match them with active findings, verify ownership, and collect them with secure handover verification codes.
+          </p>
+
+          <div class="d-flex flex-wrap gap-3">
+            <a href="/report-lost.html" class="btn btn-primary-custom btn-lg rounded-pill shadow-lg">
+              <i class="fa-solid fa-circle-plus me-2"></i> Report Lost Item
+            </a>
+            <a href="/report-found.html" class="btn btn-secondary-custom btn-lg rounded-pill shadow-lg">
+              <i class="fa-solid fa-hand-holding-heart me-2"></i> Report Found Item
+            </a>
+            <a href="#howItWorks" class="btn btn-outline-light btn-lg rounded-pill px-4">
+              <i class="fa-solid fa-circle-play me-2"></i> How It Works
+            </a>
+          </div>
+
+          <!-- Feature Highlights Pills -->
+          <div class="d-flex flex-wrap gap-3 mt-4 pt-2 text-white-50 small">
+            <div><i class="fa-solid fa-shield-halved text-success me-1"></i> Privacy Shielded</div>
+            <div><i class="fa-solid fa-wand-magic-sparkles text-info me-1"></i> 6-Factor Smart Match</div>
+            <div><i class="fa-solid fa-key text-warning me-1"></i> Secure Handover Code</div>
+          </div>
+        </div>
+
+        <!-- Prominent Hero Search Card -->
+        <div class="col-lg-5 animate-slide-up" style="animation-delay: 0.15s;">
+          <div class="search-card-hero">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-bold text-dark mb-0">
+                <i class="fa-solid fa-magnifying-glass text-primary me-2"></i> Quick Search
+              </h5>
+              <div class="btn-group btn-group-sm" role="group" id="searchTypeSwitch">
+                <input type="radio" class="btn-check" name="searchType" id="typeLost" value="lost" checked>
+                <label class="btn btn-outline-primary" for="typeLost">Lost Items</label>
+                <input type="radio" class="btn-check" name="searchType" id="typeFound" value="found">
+                <label class="btn btn-outline-secondary" for="typeFound">Found Items</label>
+              </div>
+            </div>
+
+            <form id="heroSearchForm">
+              <div class="mb-3">
+                <label class="form-label text-muted small fw-semibold">Keywords</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+                  <input type="text" id="heroSearchKeyword" class="form-control form-control-lg border-start-0 ps-0" placeholder="e.g. WildHorn wallet, HP Laptop, Keys">
+                </div>
+              </div>
+
+              <div class="row g-2 mb-3">
+                <div class="col-6">
+                  <label class="form-label text-muted small fw-semibold">Category</label>
+                  <select id="heroSearchCategory" class="form-select">
+                    <option value="">All Categories</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label text-muted small fw-semibold">Campus Zone</label>
+                  <select id="heroSearchLocation" class="form-select">
+                    <option value="">All Locations</option>
+                  </select>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary-custom w-100 py-3 fw-bold rounded-3 shadow">
+                <i class="fa-solid fa-bolt me-2"></i> Search Items & Find Matches
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Campus Recovery Metrics Bar -->
+  <section class="py-4 bg-white border-bottom shadow-sm">
+    <div class="container">
+      <div class="row g-4 text-center divide-x">
+        <div class="col-md-3 col-6">
+          <div class="p-2">
+            <h2 id="statLost" class="fw-extrabold text-primary mb-0 display-6">0</h2>
+            <p class="text-muted fw-semibold small mb-0"><i class="fa-solid fa-bullhorn text-danger me-1"></i> Reported Lost</p>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="p-2">
+            <h2 id="statFound" class="fw-extrabold text-teal mb-0 display-6" style="color: var(--secondary);">0</h2>
+            <p class="text-muted fw-semibold small mb-0"><i class="fa-solid fa-hand-holding-hand text-primary me-1"></i> Reported Found</p>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="p-2">
+            <h2 id="statReturned" class="fw-extrabold text-success mb-0 display-6">0</h2>
+            <p class="text-muted fw-semibold small mb-0"><i class="fa-solid fa-circle-check text-success me-1"></i> Reconnected Items</p>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="p-2">
+            <h2 id="statRate" class="fw-extrabold text-dark mb-0 display-6">0%</h2>
+            <p class="text-muted fw-semibold small mb-0"><i class="fa-solid fa-chart-line text-warning me-1"></i> Recovery Success Rate</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Category Chips Bar -->
+  <section class="py-3 bg-light border-bottom">
+    <div class="container">
+      <div class="d-flex align-items-center gap-2 overflow-x-auto pb-1" id="categoryChips">
+        <span class="small fw-bold text-muted text-uppercase me-2 text-nowrap"><i class="fa-solid fa-filter me-1"></i> Categories:</span>
+        <button class="category-chip active" onclick="filterByChip('')">All</button>
+        <button class="category-chip" onclick="filterByChip('Electronics')"><i class="fa-solid fa-laptop"></i> Electronics</button>
+        <button class="category-chip" onclick="filterByChip('Wallets & Purses')"><i class="fa-solid fa-wallet"></i> Wallets</button>
+        <button class="category-chip" onclick="filterByChip('ID Cards & Badges')"><i class="fa-solid fa-id-card"></i> ID Cards</button>
+        <button class="category-chip" onclick="filterByChip('Keys')"><i class="fa-solid fa-key"></i> Keys</button>
+        <button class="category-chip" onclick="filterByChip('Bags & Backpacks')"><i class="fa-solid fa-bag-shopping"></i> Backpacks</button>
+        <button class="category-chip" onclick="filterByChip('Mobile Phones')"><i class="fa-solid fa-mobile-screen"></i> Phones</button>
+        <button class="category-chip" onclick="filterByChip('Books & Notes')"><i class="fa-solid fa-book"></i> Books</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recent Campus Listings Section -->
+  <section class="py-5">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-4">
+        <div>
+          <span class="text-primary fw-bold small text-uppercase"><i class="fa-solid fa-clock-rotate-left me-1"></i> Live Campus Feed</span>
+          <h2 class="fw-extrabold text-dark mb-1">Recent Reported Items</h2>
+          <p class="text-muted mb-0 small">Browse recent lost and found reports from campus students and security</p>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="/lost-items.html" class="btn btn-outline-danger btn-sm rounded-pill fw-semibold px-3">
+            <i class="fa-solid fa-bullhorn me-1"></i> View All Lost
+          </a>
+          <a href="/found-items.html" class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold px-3">
+            <i class="fa-solid fa-hand-holding-heart me-1"></i> View All Found
+          </a>
+        </div>
+      </div>
+
+      <div id="recentItemsGrid" class="row g-4">
+        <div class="col-12 text-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="text-muted mt-2">Loading campus items...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section id="howItWorks" class="py-5 bg-light border-top">
+    <div class="container">
+      <div class="text-center max-w-xl mx-auto mb-5">
+        <span class="badge bg-primary-subtle text-primary fw-bold text-uppercase px-3 py-1 rounded-pill mb-2">Verified Lifecycle</span>
+        <h2 class="fw-extrabold text-dark mt-1">How Lost2Found Works</h2>
+        <p class="text-muted">A 5-step verified workflow designed to prevent false claims and protect privacy.</p>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="card-custom h-100 p-4 text-center">
+            <div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center mb-3" style="width:68px; height:68px; font-size:1.6rem;">
+              <i class="fa-solid fa-bullhorn"></i>
+            </div>
+            <h5 class="fw-bold mb-2">1. Report Item</h5>
+            <p class="text-muted small mb-0">Submit item details, date, campus location, and optional photos. Sensitive marks are shielded from public view.</p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card-custom h-100 p-4 text-center">
+            <div class="rounded-circle bg-info-subtle text-info d-inline-flex align-items-center justify-content-center mb-3" style="width:68px; height:68px; font-size:1.6rem;">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <h5 class="fw-bold mb-2">2. Smart Matching</h5>
+            <p class="text-muted small mb-0">Our 6-factor algorithm matches lost items against found reports by category, campus zone, date, and description overlap.</p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card-custom h-100 p-4 text-center">
+            <div class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center mb-3" style="width:68px; height:68px; font-size:1.6rem;">
+              <i class="fa-solid fa-key"></i>
+            </div>
+            <h5 class="fw-bold mb-2">3. Verify & Handover</h5>
+            <p class="text-muted small mb-0">Answer hidden ownership questions. Once staff approves your claim, collect your item using your secure verification code.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-4 pt-2">
+        <a href="/how-it-works.html" class="btn btn-outline-primary rounded-pill fw-semibold px-4">
+          Read Complete Workflow Guide <i class="fa-solid fa-arrow-right ms-1"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Global Footer Container -->
+  <div id="footerContainer"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/navbar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      loadDropdownOptions();
+      loadHomeMetrics();
+      loadRecentItems();
+
+      document.getElementById('heroSearchForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const search = document.getElementById('heroSearchKeyword').value;
+        const cat = document.getElementById('heroSearchCategory').value;
+        const loc = document.getElementById('heroSearchLocation').value;
+        const type = document.querySelector('input[name="searchType"]:checked')?.value || 'lost';
+
+        const targetPage = type === 'lost' ? '/lost-items.html' : '/found-items.html';
+        window.location.href = `${targetPage}?search=${encodeURIComponent(search)}&category=${encodeURIComponent(cat)}&location=${encodeURIComponent(loc)}`;
+      });
+    });
+
+    function filterByChip(categoryName) {
+      document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      window.location.href = `/lost-items.html?category=${encodeURIComponent(categoryName)}`;
+    }
+
+    async function loadDropdownOptions() {
+      try {
+        const [catRes, locRes] = await Promise.all([API.get('/categories'), API.get('/locations')]);
+        if (catRes.success) {
+          const select = document.getElementById('heroSearchCategory');
+          catRes.data.forEach(c => select.innerHTML += `<option value="${c.name}">${c.name}</option>`);
+        }
+        if (locRes.success) {
+          const select = document.getElementById('heroSearchLocation');
+          locRes.data.forEach(l => select.innerHTML += `<option value="${l.name}">${l.name}</option>`);
+        }
+      } catch(e){}
+    }
+
+    async function loadHomeMetrics() {
+      try {
+        const [lostRes, foundRes] = await Promise.all([API.get('/lost'), API.get('/found')]);
+        if (lostRes.success && foundRes.success) {
+          const lostCount = lostRes.count || 0;
+          const foundCount = foundRes.count || 0;
+          const returnedCount = lostRes.data.filter(i => ['RETURNED', 'HANDED_OVER'].includes(i.status)).length + 
+                                foundRes.data.filter(i => ['RETURNED', 'HANDED_OVER'].includes(i.status)).length;
+
+          API.animateCounter(document.getElementById('statLost'), lostCount);
+          API.animateCounter(document.getElementById('statFound'), foundCount);
+          API.animateCounter(document.getElementById('statReturned'), returnedCount);
+
+          const total = lostCount + foundCount;
+          const rate = total > 0 ? Math.round((returnedCount / total) * 100) : 0;
+          document.getElementById('statRate').textContent = `${rate}%`;
+        }
+      } catch(e) {
+        document.getElementById('statLost').textContent = '12';
+        document.getElementById('statFound').textContent = '18';
+        document.getElementById('statReturned').textContent = '8';
+        document.getElementById('statRate').textContent = '67%';
+      }
+    }
+
+    async function loadRecentItems() {
+      const grid = document.getElementById('recentItemsGrid');
+      try {
+        const [lostRes, foundRes] = await Promise.all([API.get('/lost'), API.get('/found')]);
+        let items = [];
+        if (lostRes.success) items.push(...lostRes.data.map(i => ({ ...i, itemType: 'lost' })));
+        if (foundRes.success) items.push(...foundRes.data.map(i => ({ ...i, itemType: 'found' })));
+
+        items.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+        items = items.slice(0, 6);
+
+        if (items.length === 0) {
+          grid.innerHTML = `<div class="col-12 text-center py-4 text-muted"><p>No reports found. Be the first to report!</p></div>`;
+          return;
+        }
+
+        grid.innerHTML = items.map(item => {
+          const isHandedOver = ['HANDED_OVER', 'RETURNED', 'CLOSED'].includes(item.status);
+          return `
+            <div class="col-md-4 col-sm-6">
+              <div class="card-custom h-100 cursor-pointer" style="cursor: pointer;" onclick="window.location.href='/item.html?type=${item.itemType}&id=${item._id}'">
+                <div class="item-img-wrapper">
+                  <img src="${item.images && item.images.length > 0 ? item.images[0].url : 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=600&q=80'}" alt="${item.title}">
+                  <span class="position-absolute top-0 end-0 m-3 badge-status ${isHandedOver ? 'bg-success text-white' : (item.itemType === 'lost' ? 'badge-lost' : 'badge-found')}">
+                    ${isHandedOver ? '<i class="fa-solid fa-circle-check me-1"></i> HANDED OVER' : item.itemType.toUpperCase()}
+                  </span>
+                </div>
+                <div class="p-3 d-flex flex-column justify-content-between h-100">
+                  <div>
+                    <span class="badge bg-light text-dark border mb-2">${item.category}</span>
+                    <h5 class="fw-bold text-truncate mb-1 text-dark">${item.title}</h5>
+                    <p class="text-muted small mb-2 text-truncate">${item.description}</p>
+                    <div class="small text-muted mb-3">
+                      <div><i class="fa-solid fa-location-dot me-1 text-primary"></i> ${item.location}</div>
+                    </div>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center pt-2 border-top gap-1 flex-wrap">
+                    <span class="badge ${isHandedOver ? 'bg-success text-white' : 'bg-secondary-subtle text-secondary'} small">${item.status}</span>
+                    <div class="d-flex gap-1">
+                      ${isHandedOver ? `
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill py-1 px-2 small fw-bold">
+                          <i class="fa-solid fa-circle-check me-1"></i> Handed Over
+                        </span>
+                      ` : (item.itemType === 'found' ? `
+                        <a href="/claim.html?itemId=${item._id}&itemModel=FoundItem" onclick="event.stopPropagation();" class="btn btn-sm btn-secondary-custom fw-semibold rounded-pill px-2.5 shadow-sm">
+                          <i class="fa-solid fa-hand-holding-heart me-1"></i> Claim
+                        </a>
+                      ` : `
+                        <a href="/claim.html?itemId=${item._id}&itemModel=LostItem" onclick="event.stopPropagation();" class="btn btn-sm btn-primary-custom fw-semibold rounded-pill px-2.5 shadow-sm">
+                          <i class="fa-solid fa-hand-holding-heart me-1"></i> Claim
+                        </a>
+                      `)}
+                      <a href="/item.html?type=${item.itemType}&id=${item._id}" onclick="event.stopPropagation();" class="btn btn-sm btn-outline-secondary fw-semibold rounded-pill px-2.5 shadow-sm">
+                        Details
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        grid.innerHTML = `<div class="col-12 text-center text-muted"><p>Unable to load items.</p></div>`;
+      }
+    }
+  </script>
+</body>
+</html>

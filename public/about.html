@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us — Lost2Found</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-light">
+
+  <div id="navbarContainer"></div>
+
+  <div class="hero-section py-5">
+    <div class="container text-center animate-slide-up">
+      <span class="badge bg-white bg-opacity-10 border border-white border-opacity-25 text-white px-3 py-1 rounded-pill mb-2">
+        Campus Platform
+      </span>
+      <h1 class="fw-extrabold display-5">About Lost2Found</h1>
+      <p class="lead opacity-75 max-w-xl mx-auto">Reimagining campus lost & found management into a trusted, centralized digital service</p>
+    </div>
+  </div>
+
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card-custom p-4 p-md-5 mb-4 shadow-sm border-0 animate-slide-up">
+          <h3 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-bullseye me-2"></i> The Problem We Solve</h3>
+          <p class="text-muted leading-relaxed">
+            In colleges, thousands of personal belongings like mobile phones, laptops, chargers, wallets, college ID cards, keys, earphones, and notebooks are misplaced every semester. Historically, students relied on scattered WhatsApp group messages, physical notice boards, or informal social media chatter.
+          </p>
+          <p class="text-muted leading-relaxed">
+            <strong>Lost2Found</strong> provides one centralized, campus-authenticated platform that connects lost item reporters, item finders, and campus security officers with built-in fraud prevention.
+          </p>
+
+          <hr class="my-4">
+
+          <h4 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-shield-halved me-2 text-success"></i> Architectural Pillars</h4>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="p-3 bg-light rounded-3 border h-100">
+                <h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-database text-primary me-2"></i> Robust MongoDB Backend</h6>
+                <p class="small text-muted mb-0">Production MongoDB Atlas data structures for reports, claims, audit logs, and categories.</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 bg-light rounded-3 border h-100">
+                <h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-user-shield text-info me-2"></i> Privacy Shielding</h6>
+                <p class="small text-muted mb-0">Confidential ownership identifiers are hidden from the public to prevent opportunistic false claims.</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 bg-light rounded-3 border h-100">
+                <h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-key text-success me-2"></i> Secure Handover Codes</h6>
+                <p class="small text-muted mb-0">Unique verification codes required for physical item collection at the Security Office.</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 bg-light rounded-3 border h-100">
+                <h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-envelope text-warning me-2"></i> Nodemailer OTP Alerts</h6>
+                <p class="small text-muted mb-0">Automatic delivery of OTP codes and claim approval notifications directly to college inboxes.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="footerContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/navbar.js"></script>
+</body>
+</html>

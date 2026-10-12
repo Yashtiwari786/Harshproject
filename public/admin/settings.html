@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Settings — Lost2Found Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="bg-light">
+
+  <div id="navbarContainer"></div>
+
+  <div class="admin-wrapper">
+    <div class="admin-sidebar">
+      <div class="px-2 mb-3">
+        <span class="badge bg-primary text-uppercase px-2 py-1 mb-2">Staff & Admin</span>
+        <h5 class="fw-extrabold text-white mb-0">Command Center</h5>
+      </div>
+      <nav class="admin-sidebar-nav">
+        <a href="/admin/dashboard.html" class="admin-nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+        <a href="/admin/users.html" class="admin-nav-item"><i class="fa-solid fa-users"></i> User Accounts</a>
+        <a href="/admin/items.html" class="admin-nav-item"><i class="fa-solid fa-boxes-stacked"></i> Items Queue</a>
+        <a href="/admin/claims.html" class="admin-nav-item"><i class="fa-solid fa-file-signature"></i> Claims & Handover</a>
+        <a href="/admin/reports.html" class="admin-nav-item"><i class="fa-solid fa-flag"></i> Abuse Reports</a>
+        <a href="/admin/analytics.html" class="admin-nav-item"><i class="fa-solid fa-chart-pie"></i> Analytics</a>
+        <a href="/admin/settings.html" class="admin-nav-item active"><i class="fa-solid fa-gear"></i> Campus Settings</a>
+        <a href="/admin/audit-logs.html" class="admin-nav-item"><i class="fa-solid fa-shield-halved"></i> Audit Trail</a>
+      </nav>
+    </div>
+
+  <div class="admin-content">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+          <h2 class="fw-extrabold text-dark mb-1">Campus Configuration</h2>
+          <p class="text-muted small mb-0">Manage campus item categories, locations, and portal listing availability</p>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <!-- Categories Management Box -->
+        <div class="col-lg-6">
+          <div class="card-custom p-4 shadow-sm border-0 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+              <div>
+                <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-tags text-primary me-2"></i> Item Categories</h5>
+                <small class="text-muted" id="catCountText">0 categories configured</small>
+              </div>
+              <button class="btn btn-primary-custom btn-sm rounded-pill fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                <i class="fa-solid fa-plus me-1"></i> Add Category
+              </button>
+            </div>
+
+            <div class="mb-3">
+              <input type="text" id="catSearchInput" class="form-control form-control-sm" placeholder="Filter categories..." oninput="filterCategories()">
+            </div>
+
+            <div id="categoryList" class="d-flex flex-column gap-2" style="max-height: 480px; overflow-y: auto;">
+              <div class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div> Loading categories...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campus Locations Management Box -->
+        <div class="col-lg-6">
+          <div class="card-custom p-4 shadow-sm border-0 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+              <div>
+                <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-map-pin text-secondary me-2"></i> Campus Locations</h5>
+                <small class="text-muted" id="locCountText">0 locations configured</small>
+              </div>
+              <button class="btn btn-secondary-custom btn-sm rounded-pill fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#addLocationModal">
+                <i class="fa-solid fa-plus me-1"></i> Add Location
+              </button>
+            </div>
+
+            <div class="mb-3">
+              <input type="text" id="locSearchInput" class="form-control form-control-sm" placeholder="Filter campus locations..." oninput="filterLocations()">
+            </div>
+
+            <div id="locationList" class="d-flex flex-column gap-2" style="max-height: 480px; overflow-y: auto;">
+              <div class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-secondary me-2"></div> Loading locations...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Category Modal -->
+  <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-tags me-2"></i> Add New Category</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="addCategoryForm" onsubmit="submitCategory(event)">
+          <div class="modal-body p-4">
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-dark">Category Name <span class="text-danger">*</span></label>
+              <input type="text" id="newCatName" class="form-control" placeholder="e.g. Smart Watches, Laboratory Gear" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-dark">Category Icon</label>
+              <select id="newCatIcon" class="form-select">
+                <option value="fa-box">📦 Box / General (fa-box)</option>
+                <option value="fa-laptop">💻 Laptop / Computing (fa-laptop)</option>
+                <option value="fa-mobile-screen">📱 Mobile / Smartphone (fa-mobile-screen)</option>
+                <option value="fa-wallet">👛 Wallet / Purse (fa-wallet)</option>
+                <option value="fa-id-card">🪪 ID / Badge (fa-id-card)</option>
+                <option value="fa-key">🔑 Keys (fa-key)</option>
+                <option value="fa-bag-shopping">🎒 Backpack / Bag (fa-bag-shopping)</option>
+                <option value="fa-book">📚 Books / Notes (fa-book)</option>
+                <option value="fa-headphones">🎧 Headphones / Audio (fa-headphones)</option>
+                <option value="fa-clock">⌚ Watch (fa-clock)</option>
+                <option value="fa-plug">🔌 Chargers / Cables (fa-plug)</option>
+                <option value="fa-pen">🖊️ Stationery (fa-pen)</option>
+                <option value="fa-shirt">👕 Clothing (fa-shirt)</option>
+                <option value="fa-gem">💍 Accessories (fa-gem)</option>
+                <option value="fa-file-lines">📄 Documents (fa-file-lines)</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-dark">Initial Status</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="newCatActive" checked>
+                <label class="form-check-label fw-medium text-success" id="newCatActiveLabel" for="newCatActive">
+                  Active (Immediately available in portal dropdowns)
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer bg-light p-3">
+            <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary-custom rounded-pill px-4 fw-bold">Create Category</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Location Modal -->
+  <div class="modal fade" id="addLocationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-map-pin me-2"></i> Add Campus Location</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="addLocationForm" onsubmit="submitLocation(event)">
+          <div class="modal-body p-4">
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-dark">Location Name <span class="text-danger">*</span></label>
+              <input type="text" id="newLocName" class="form-control" placeholder="e.g. Science Lab 4, Central Library Floor 2" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-dark">Campus Building / Zone</label>
+              <input type="text" id="newLocBuilding" class="form-control" placeholder="e.g. Academic Block B, Sports Complex" value="Main Campus">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-dark">Initial Status</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="newLocActive" checked>
+                <label class="form-check-label fw-medium text-success" id="newLocActiveLabel" for="newLocActive">
+                  Active (Immediately available in portal dropdowns)
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer bg-light p-3">
+            <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-secondary-custom rounded-pill px-4 fw-bold">Create Location</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/navbar.js"></script>
+  <script src="/js/admin.js"></script>
+  <script>
+    let allCategories = [];
+    let allLocations = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSettings();
+
+      document.getElementById('newCatActive')?.addEventListener('change', (e) => {
+        const lbl = document.getElementById('newCatActiveLabel');
+        lbl.textContent = e.target.checked ? 'Active (Immediately available in portal dropdowns)' : 'Disabled (Hidden from portal dropdowns)';
+        lbl.className = e.target.checked ? 'form-check-label fw-medium text-success' : 'form-check-label fw-medium text-secondary';
+      });
+
+      document.getElementById('newLocActive')?.addEventListener('change', (e) => {
+        const lbl = document.getElementById('newLocActiveLabel');
+        lbl.textContent = e.target.checked ? 'Active (Immediately available in portal dropdowns)' : 'Disabled (Hidden from portal dropdowns)';
+        lbl.className = e.target.checked ? 'form-check-label fw-medium text-success' : 'form-check-label fw-medium text-secondary';
+      });
+    });
+
+    async function loadSettings() {
+      try {
+        const [catRes, locRes] = await Promise.all([API.get('/admin/categories'), API.get('/admin/locations')]);
+        
+        if (catRes.success) {
+          allCategories = catRes.data || [];
+          document.getElementById('catCountText').textContent = `${allCategories.length} categories configured (${allCategories.filter(c => c.isActive !== false).length} Active)`;
+          renderCategories(allCategories);
+        }
+
+        if (locRes.success) {
+          allLocations = locRes.data || [];
+          document.getElementById('locCountText').textContent = `${allLocations.length} locations configured (${allLocations.filter(l => l.isActive !== false).length} Active)`;
+          renderLocations(allLocations);
+        }
+      } catch (e) {
+        API.showToast('Failed to load settings data: ' + e.message, 'error');
+      }
+    }
+
+    function renderCategories(categories) {
+      const list = document.getElementById('categoryList');
+      if (!categories || categories.length === 0) {
+        list.innerHTML = `<div class="text-center py-4 text-muted">No categories found.</div>`;
+        return;
+      }
+      list.innerHTML = categories.map(c => {
+        const isActive = c.isActive !== false;
+        return `
+          <div class="p-2.5 border rounded-3 d-flex justify-content-between align-items-center bg-white shadow-xs transition hover-lift">
+            <div class="d-flex align-items-center gap-2.5">
+              <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary" style="width: 36px; height: 36px;">
+                <i class="fa-solid ${c.icon || 'fa-box'}"></i>
+              </div>
+              <div>
+                <strong class="text-dark d-block">${c.name}</strong>
+                <span class="badge ${isActive ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary-subtle text-secondary border'} px-2 py-0.5 fw-bold" style="font-size: 0.72rem;">
+                  <i class="fa-solid ${isActive ? 'fa-circle-check' : 'fa-circle-xmark'} me-1"></i> ${isActive ? 'Active' : 'Disabled'}
+                </span>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <button onclick="toggleCategory('${c._id}', ${isActive})" class="btn btn-sm ${isActive ? 'btn-outline-danger' : 'btn-outline-success'} rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.78rem;">
+                <i class="fa-solid ${isActive ? 'fa-ban' : 'fa-circle-check'} me-1"></i> ${isActive ? 'Disable' : 'Make Active'}
+              </button>
+              <button onclick="deleteCategory('${c._id}', '${c.name.replace(/'/g, "\\'")}')" class="btn btn-sm btn-outline-danger rounded-circle p-1" style="width: 28px; height: 28px;" title="Delete Category">
+                <i class="fa-solid fa-trash-can" style="font-size: 0.72rem;"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderLocations(locations) {
+      const list = document.getElementById('locationList');
+      if (!locations || locations.length === 0) {
+        list.innerHTML = `<div class="text-center py-4 text-muted">No campus locations found.</div>`;
+        return;
+      }
+      list.innerHTML = locations.map(l => {
+        const isActive = l.isActive !== false;
+        return `
+          <div class="p-2.5 border rounded-3 d-flex justify-content-between align-items-center bg-white shadow-xs transition hover-lift">
+            <div class="d-flex align-items-center gap-2.5">
+              <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary" style="width: 36px; height: 36px;">
+                <i class="fa-solid fa-location-dot"></i>
+              </div>
+              <div>
+                <strong class="text-dark d-block">${l.name}</strong>
+                <div class="d-flex align-items-center gap-1.5">
+                  <small class="text-muted">${l.building || 'Main Campus'}</small>
+                  <span class="badge ${isActive ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary-subtle text-secondary border'} px-2 py-0.5 fw-bold" style="font-size: 0.72rem;">
+                    <i class="fa-solid ${isActive ? 'fa-circle-check' : 'fa-circle-xmark'} me-1"></i> ${isActive ? 'Active' : 'Disabled'}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <button onclick="toggleLocation('${l._id}', ${isActive})" class="btn btn-sm ${isActive ? 'btn-outline-danger' : 'btn-outline-success'} rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.78rem;">
+                <i class="fa-solid ${isActive ? 'fa-ban' : 'fa-circle-check'} me-1"></i> ${isActive ? 'Disable' : 'Make Active'}
+              </button>
+              <button onclick="deleteLocation('${l._id}', '${l.name.replace(/'/g, "\\'")}')" class="btn btn-sm btn-outline-danger rounded-circle p-1" style="width: 28px; height: 28px;" title="Delete Location">
+                <i class="fa-solid fa-trash-can" style="font-size: 0.72rem;"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterCategories() {
+      const q = document.getElementById('catSearchInput').value.toLowerCase().trim();
+      if (!q) return renderCategories(allCategories);
+      const filtered = allCategories.filter(c => c.name.toLowerCase().includes(q));
+      renderCategories(filtered);
+    }
+
+    function filterLocations() {
+      const q = document.getElementById('locSearchInput').value.toLowerCase().trim();
+      if (!q) return renderLocations(allLocations);
+      const filtered = allLocations.filter(l => l.name.toLowerCase().includes(q) || (l.building && l.building.toLowerCase().includes(q)));
+      renderLocations(filtered);
+    }
+
+    async function submitCategory(e) {
+      e.preventDefault();
+      const name = document.getElementById('newCatName').value.trim();
+      const icon = document.getElementById('newCatIcon').value;
+      const isActive = document.getElementById('newCatActive').checked;
+      if (!name) return;
+
+      try {
+        const res = await API.post('/admin/categories', { name, icon, isActive });
+        if (res.success) {
+          API.showToast(`Category "${name}" created and is Active!`, 'success');
+          document.getElementById('addCategoryForm').reset();
+          document.getElementById('newCatActive').checked = true;
+          bootstrap.Modal.getInstance(document.getElementById('addCategoryModal'))?.hide();
+          loadSettings();
+        }
+      } catch (err) {
+        API.showToast(err.message || 'Failed to add category', 'error');
+      }
+    }
+
+    async function submitLocation(e) {
+      e.preventDefault();
+      const name = document.getElementById('newLocName').value.trim();
+      const building = document.getElementById('newLocBuilding').value.trim() || 'Main Campus';
+      const isActive = document.getElementById('newLocActive').checked;
+      if (!name) return;
+
+      try {
+        const res = await API.post('/admin/locations', { name, building, isActive });
+        if (res.success) {
+          API.showToast(`Location "${name}" created and is Active!`, 'success');
+          document.getElementById('addLocationForm').reset();
+          document.getElementById('newLocActive').checked = true;
+          bootstrap.Modal.getInstance(document.getElementById('addLocationModal'))?.hide();
+          loadSettings();
+        }
+      } catch (err) {
+        API.showToast(err.message || 'Failed to add location', 'error');
+      }
+    }
+
+    async function toggleCategory(id, currentStatus) {
+      const newStatus = !currentStatus;
+      try {
+        const res = await API.put(`/admin/categories/${id}`, { isActive: newStatus });
+        if (res.success) {
+          API.showToast(`Category status updated to ${newStatus ? 'Active' : 'Disabled'}`, 'success');
+          loadSettings();
+        }
+      } catch (err) {
+        API.showToast(err.message || 'Failed to update category', 'error');
+      }
+    }
+
+    async function toggleLocation(id, currentStatus) {
+      const newStatus = !currentStatus;
+      try {
+        const res = await API.put(`/admin/locations/${id}`, { isActive: newStatus });
+        if (res.success) {
+          API.showToast(`Location status updated to ${newStatus ? 'Active' : 'Disabled'}`, 'success');
+          loadSettings();
+        }
+      } catch (err) {
+        API.showToast(err.message || 'Failed to update location', 'error');
+      }
+    }
+
+    async function deleteCategory(id, name) {
+      if (!confirm(`Are you sure you want to delete category "${name}"?`)) return;
+      try {
+        const res = await API.delete(`/admin/categories/${id}`);
+        if (res.success) {
+          API.showToast(`Category "${name}" deleted`, 'success');
+          loadSettings();
+        }
+      } catch (err) {
+        API.showToast(err.message || 'Failed to delete category', 'error');
+      }
+    }
+
+    async function deleteLocation(id, name) {
+      if (!confirm(`Are you sure you want to delete location "${name}"?`)) return;
+      try {
+        const res = await API.delete(`/admin/locations/${id}`);
+        if (res.success) {
+          API.showToast(`Location "${name}" deleted`, 'success');
+          loadSettings();
+        }
+      } catch (err) {
+        API.showToast(err.message || 'Failed to delete location', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

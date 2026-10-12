@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard — Lost2Found</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body class="bg-light">
+
+  <div id="navbarContainer"></div>
+
+  <!-- Dashboard Header -->
+  <div class="dashboard-header">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1 rounded-pill mb-1">Student Portal</span>
+          <h2 class="fw-extrabold text-dark mb-1">Welcome back, <span id="userName">Student</span> 👋</h2>
+          <p class="text-muted small mb-0"><span id="userDept">Department</span> • Roll No: <code id="userCollegeId">College ID</code></p>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="/report-lost.html" class="btn btn-outline-danger btn-sm rounded-pill fw-semibold px-3 shadow-sm">
+            <i class="fa-solid fa-circle-plus me-1"></i> Report Lost Item
+          </a>
+          <a href="/report-found.html" class="btn btn-outline-success btn-sm rounded-pill fw-semibold px-3 shadow-sm">
+            <i class="fa-solid fa-hand-holding-heart me-1"></i> Report Found Item
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container pb-5">
+    
+    <!-- KPI Counters with Animation -->
+    <div class="row g-4 mb-4">
+      <div class="col-md-3 col-6">
+        <div class="kpi-card">
+          <div>
+            <div id="kpiLost" class="kpi-val">0</div>
+            <div class="kpi-lbl">My Lost Reports</div>
+          </div>
+          <div class="kpi-icon indigo"><i class="fa-solid fa-bullhorn"></i></div>
+        </div>
+      </div>
+
+      <div class="col-md-3 col-6">
+        <div class="kpi-card">
+          <div>
+            <div id="kpiFound" class="kpi-val">0</div>
+            <div class="kpi-lbl">My Found Reports</div>
+          </div>
+          <div class="kpi-icon teal"><i class="fa-solid fa-hand-holding-hand"></i></div>
+        </div>
+      </div>
+
+      <div class="col-md-3 col-6">
+        <div class="kpi-card">
+          <div>
+            <div id="kpiClaims" class="kpi-val">0</div>
+            <div class="kpi-lbl">Active Claims</div>
+          </div>
+          <div class="kpi-icon amber"><i class="fa-solid fa-file-signature"></i></div>
+        </div>
+      </div>
+
+      <div class="col-md-3 col-6">
+        <div class="kpi-card">
+          <div>
+            <div id="kpiReturned" class="kpi-val">0</div>
+            <div class="kpi-lbl">Items Recovered</div>
+          </div>
+          <div class="kpi-icon emerald"><i class="fa-solid fa-circle-check"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Handover Code Alert Banner -->
+    <div id="handoverAlertBanner" class="mb-4 d-none animate-slide-up"></div>
+
+    <!-- Dashboard Tabs -->
+    <div class="card-custom border-0 shadow-md">
+      <div class="card-header bg-white border-bottom p-0">
+        <ul class="nav nav-tabs card-header-tabs m-0 px-3 pt-2 border-0" id="dashTabs">
+          <li class="nav-item">
+            <button class="nav-link active fw-bold py-3" data-bs-toggle="tab" data-bs-target="#tabLost">
+              <i class="fa-solid fa-bullhorn text-danger me-1"></i> My Lost Reports
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link fw-bold py-3" data-bs-toggle="tab" data-bs-target="#tabFound">
+              <i class="fa-solid fa-hand-holding-heart text-success me-1"></i> My Found Reports
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link fw-bold py-3" data-bs-toggle="tab" data-bs-target="#tabClaims">
+              <i class="fa-solid fa-file-signature text-warning me-1"></i> My Claims & Codes
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card-body p-4">
+        <div class="tab-content">
+          
+          <!-- My Lost Reports -->
+          <div class="tab-pane fade show active" id="tabLost">
+            <div id="lostList" class="row g-3">
+              <div class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary"></div> Loading your reports...</div>
+            </div>
+          </div>
+
+          <!-- My Found Reports -->
+          <div class="tab-pane fade" id="tabFound">
+            <div id="foundList" class="row g-3">
+              <div class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary"></div> Loading your reports...</div>
+            </div>
+          </div>
+
+          <!-- My Claims & Handover Codes -->
+          <div class="tab-pane fade" id="tabClaims">
+            <div id="claimsList" class="row g-3">
+              <div class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary"></div> Loading your claims...</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="footerContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/navbar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      Auth.requireAuth();
+      const user = Auth.getUser();
+      if (user) {
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('userDept').textContent = user.department;
+        document.getElementById('userCollegeId').textContent = user.collegeId;
+      }
+
+      if (window.location.hash === '#claims') {
+        const claimTab = document.querySelector('[data-bs-target="#tabClaims"]');
+        if (claimTab) bootstrap.Tab.getOrCreateInstance(claimTab).show();
+      }
+
+      loadDashboardData();
+    });
+
+    async function loadDashboardData() {
+      const user = Auth.getUser();
+      try {
+        const [lostRes, foundRes, claimsRes] = await Promise.all([
+          API.get('/lost'),
+          API.get('/found'),
+          API.get('/claims/my')
+        ]);
+
+        let myLost = [];
+        let myFound = [];
+        let myClaims = [];
+
+        if (lostRes.success && Array.isArray(lostRes.data)) {
+          myLost = lostRes.data.filter(i => {
+            const repId = i.reportedBy ? (i.reportedBy._id || i.reportedBy).toString() : '';
+            return user && repId === user._id.toString();
+          });
+        }
+        if (foundRes.success && Array.isArray(foundRes.data)) {
+          myFound = foundRes.data.filter(i => {
+            const repId = i.reportedBy ? (i.reportedBy._id || i.reportedBy).toString() : '';
+            return user && repId === user._id.toString();
+          });
+        }
+        if (claimsRes.success && Array.isArray(claimsRes.data)) {
+          myClaims = claimsRes.data;
+        }
+
+        API.animateCounter(document.getElementById('kpiLost'), myLost.length);
+        API.animateCounter(document.getElementById('kpiFound'), myFound.length);
+        API.animateCounter(document.getElementById('kpiClaims'), myClaims.filter(c => c.status === 'PENDING' || c.status === 'APPROVED').length);
+        
+        const returnedCount = myLost.filter(i => i.status === 'RETURNED').length + myFound.filter(i => i.status === 'RETURNED').length;
+        API.animateCounter(document.getElementById('kpiReturned'), returnedCount);
+
+        // Render Active Approved Handover Banner with Copy Button
+        const approvedClaim = myClaims.find(c => c.status === 'APPROVED');
+        const banner = document.getElementById('handoverAlertBanner');
+        if (approvedClaim && approvedClaim.handoverCode) {
+          banner.classList.remove('d-none');
+          banner.innerHTML = `
+            <div class="handover-banner animate-glow">
+              <span class="badge bg-white text-dark fw-bold uppercase px-3 py-1 rounded-pill mb-2">🎉 Claim Approved — Ready for Pickup</span>
+              <h3 class="fw-extrabold mb-1">${approvedClaim.itemId ? approvedClaim.itemId.title : 'Claimed Item'}</h3>
+              <p class="small text-white-50 mb-2">Present this verification code at the campus collection point:</p>
+              
+              <div class="d-flex align-items-center justify-content-center gap-3 my-2 flex-wrap">
+                <div class="handover-display-code">${approvedClaim.handoverCode}</div>
+                <button type="button" class="btn btn-light rounded-pill px-3 py-2 fw-bold shadow" onclick="API.copyToClipboard('${approvedClaim.handoverCode}', this)">
+                  <i class="fa-solid fa-copy me-1"></i> Copy Code
+                </button>
+              </div>
+
+              <div class="small text-white-50 mt-2">
+                <i class="fa-solid fa-id-card me-1 text-warning"></i> Bring your physical Student ID card to the Security Office to complete verification.
+              </div>
+            </div>
+          `;
+        } else {
+          banner.classList.add('d-none');
+        }
+
+        // Render My Lost List
+        const lostList = document.getElementById('lostList');
+        if (myLost.length > 0) {
+          lostList.innerHTML = myLost.map(item => `
+            <div class="col-md-6">
+              <div class="card-custom p-3 d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="badge bg-light text-dark border mb-1">${item.category}</span>
+                  <h6 class="fw-bold text-dark mb-1 text-truncate" style="max-width:260px;">${item.title}</h6>
+                  <small class="text-muted"><i class="fa-solid fa-location-dot me-1"></i> ${item.location} • ${new Date(item.dateLost).toLocaleDateString()}</small>
+                </div>
+                <div class="text-end">
+                  <span class="badge-status badge-${item.status.toLowerCase()}">${item.status}</span>
+                  <div class="mt-2 d-flex gap-1 justify-content-end flex-wrap">
+                    <a href="/item.html?type=lost&id=${item._id}#matches" class="btn btn-sm btn-primary-custom rounded-pill px-3 shadow-sm">
+                      <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Matches
+                    </a>
+                    <a href="/item.html?type=lost&id=${item._id}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                      Details
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          lostList.innerHTML = `
+            <div class="text-center py-5 text-muted col-12">
+              <i class="fa-solid fa-box-open fs-2 text-muted mb-2"></i>
+              <p class="mb-2">You haven't reported any lost items yet.</p>
+              <a href="/report-lost.html" class="btn btn-sm btn-danger rounded-pill px-3">Report Lost Item</a>
+            </div>
+          `;
+        }
+
+        // Render My Found List
+        const foundList = document.getElementById('foundList');
+        if (myFound.length > 0) {
+          foundList.innerHTML = myFound.map(item => `
+            <div class="col-md-6">
+              <div class="card-custom p-3 d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="badge bg-light text-dark border mb-1">${item.category}</span>
+                  <h6 class="fw-bold text-dark mb-1 text-truncate" style="max-width:260px;">${item.title}</h6>
+                  <small class="text-muted"><i class="fa-solid fa-location-dot me-1"></i> ${item.location} • Storage: ${item.currentStorageLocation}</small>
+                </div>
+                <div class="text-end">
+                  <span class="badge-status badge-${item.status.toLowerCase()}">${item.status}</span>
+                  <div class="mt-2 d-flex gap-1 justify-content-end flex-wrap">
+                    <a href="/item.html?type=found&id=${item._id}#matches" class="btn btn-sm btn-secondary-custom rounded-pill px-3 shadow-sm">
+                      <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Matches
+                    </a>
+                    <a href="/item.html?type=found&id=${item._id}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                      Details
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          foundList.innerHTML = `
+            <div class="text-center py-5 text-muted col-12">
+              <i class="fa-solid fa-hand-holding-heart fs-2 text-muted mb-2"></i>
+              <p class="mb-2">You haven't reported any found items yet.</p>
+              <a href="/report-found.html" class="btn btn-sm btn-success rounded-pill px-3">Report Found Item</a>
+            </div>
+          `;
+        }
+
+        // Render My Claims List
+        const claimsList = document.getElementById('claimsList');
+        if (myClaims.length > 0) {
+          claimsList.innerHTML = myClaims.map(c => `
+            <div class="col-12">
+              <div class="card-custom p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                  <span class="badge bg-light text-dark border mb-1">Claim #${c._id.substring(c._id.length - 6)}</span>
+                  <h6 class="fw-bold text-dark mb-1">${c.itemId ? c.itemId.title : 'Claimed Item'}</h6>
+                  <p class="small text-muted mb-0">Reason: ${c.reason}</p>
+                </div>
+                <div class="text-end">
+                  <span class="badge-status badge-${c.status.toLowerCase()}">${c.status}</span>
+                  ${c.handoverCode ? `
+                    <div class="mt-2">
+                      <span class="badge bg-dark font-monospace px-3 py-2 fs-6">Code: ${c.handoverCode}</span>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          claimsList.innerHTML = `
+            <div class="text-center py-5 text-muted col-12">
+              <i class="fa-solid fa-file-signature fs-2 text-muted mb-2"></i>
+              <p class="mb-0">You have no active or completed claims.</p>
+            </div>
+          `;
+        }
+
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>

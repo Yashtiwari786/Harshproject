@@ -5,7 +5,9 @@ mongoose.set('bufferCommands', true);
 
 let cachedConnectionPromise = null;
 
-const connectDB = async (retries = 3) => {
+const DEFAULT_ATLAS_URI = 'mongodb+srv://dvvnlmdoffice_db_user:tIOBLubR83JVDj02@cluster0.gy30quf.mongodb.net/lost2found?retryWrites=true&w=majority&appName=Cluster0';
+
+const connectDB = async (retries = 2) => {
   // If already connected, reuse existing connection immediately
   if (mongoose.connection.readyState === 1) {
     return true;
@@ -21,13 +23,13 @@ const connectDB = async (retries = 3) => {
     }
   }
 
-  const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/lost2found';
+  const mongoUri = process.env.MONGO_URI || DEFAULT_ATLAS_URI;
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       cachedConnectionPromise = mongoose.connect(mongoUri, {
-        serverSelectionTimeoutMS: 20000,
-        socketTimeoutMS: 45000,
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 15000,
         tlsAllowInvalidCertificates: true,
       });
 
@@ -36,13 +38,11 @@ const connectDB = async (retries = 3) => {
       return true;
     } catch (error) {
       cachedConnectionPromise = null;
-      console.warn(`[Database Notice] Attempt ${attempt}/${retries} failed: ${error.message}`);
+      console.warn(`[Database Notice] Connection attempt ${attempt}/${retries} failed: ${error.message}`);
       if (attempt < retries) {
-        console.log(`[Database] Retrying connection in 2 seconds...`);
-        await new Promise((res) => setTimeout(res, 2000));
+        await new Promise((res) => setTimeout(res, 1000));
       } else {
-        console.warn(`[Database Notice] MongoDB Atlas is currently offline or unreachable (${error.message}).`);
-        console.log(`[Database Active] ✅ Resilient In-Memory persistence engine is active as temporary fallback.`);
+        console.warn(`[Database Notice] MongoDB Atlas is currently unreachable (${error.message}). Resilient fallback active.`);
         return false;
       }
     }

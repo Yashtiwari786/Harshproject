@@ -43,8 +43,8 @@ const createTransporter = () => {
 
 const transporter = createTransporter();
 
-// Check transporter on startup
-if (transporter) {
+// Check transporter on startup (skipped on Vercel to avoid cold-start latency)
+if (transporter && process.env.VERCEL !== '1') {
   transporter.verify((error) => {
     if (error) {
       console.warn(`[Nodemailer Notice] Transporter configured but verify returned: ${error.message}`);
@@ -53,7 +53,7 @@ if (transporter) {
       console.log(`[Nodemailer Ready] ✅ Live email transport connected and ready to send OTP emails.`);
     }
   });
-} else {
+} else if (!transporter) {
   console.info(`[Nodemailer Info] No Gmail App Password or SMTP set in .env. Emails & OTPs will log to the terminal console during development.`);
 }
 

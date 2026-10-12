@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Command Dashboard — Lost2Found</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-light">
+
+  <div id="navbarContainer"></div>
+
+  <div class="admin-wrapper">
+    <!-- Admin & Staff Sidebar -->
+    <div class="admin-sidebar">
+      <div class="px-2 mb-3">
+        <span class="badge bg-primary text-uppercase px-2 py-1 mb-2" id="sidebarRoleBadge">Staff & Admin</span>
+        <h5 class="fw-extrabold text-white mb-0" id="sidebarTitle">Command Center</h5>
+      </div>
+      <nav class="admin-sidebar-nav">
+        <a href="/admin/dashboard.html" class="admin-nav-item active"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+        <a href="/admin/users.html" class="admin-nav-item"><i class="fa-solid fa-users"></i> User Accounts</a>
+        <a href="/admin/items.html" class="admin-nav-item"><i class="fa-solid fa-boxes-stacked"></i> Items Queue</a>
+        <a href="/admin/claims.html" class="admin-nav-item"><i class="fa-solid fa-file-signature"></i> Claims & Handover</a>
+        <a href="/admin/reports.html" class="admin-nav-item"><i class="fa-solid fa-flag"></i> Abuse Reports</a>
+        <a href="/admin/analytics.html" class="admin-nav-item" id="navAnalytics"><i class="fa-solid fa-chart-pie"></i> Analytics</a>
+        <a href="/admin/settings.html" class="admin-nav-item" id="navSettings"><i class="fa-solid fa-gear"></i> Campus Settings</a>
+        <a href="/admin/audit-logs.html" class="admin-nav-item" id="navAudit"><i class="fa-solid fa-shield-halved"></i> Audit Trail</a>
+      </nav>
+    </div>
+
+    <!-- Admin & Staff Main Content Area -->
+    <div class="admin-content">
+      
+      <!-- Dynamic Header Differentiated by Role -->
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+            <span class="badge bg-dark text-white fw-bold px-3 py-1 rounded-pill" id="dashboardRolePill">Loading Role...</span>
+            <span class="badge bg-success-subtle text-success border border-success fw-semibold px-2 py-0.5 rounded-pill"><i class="fa-solid fa-circle-check me-1"></i> Active Session</span>
+          </div>
+          <h2 class="fw-extrabold text-dark mb-0" id="dashboardHeading">Campus Command Center</h2>
+          <p class="text-muted small mb-0" id="dashboardSubHeading">Real-time statistics, registered users, and item handover actions</p>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <a href="/report-found.html" class="btn btn-secondary-custom btn-sm rounded-pill px-3 shadow-sm">
+            <i class="fa-solid fa-plus me-1"></i> Deposit Found Item
+          </a>
+          <a href="/admin/claims.html" class="btn btn-primary-custom btn-sm rounded-pill px-3 shadow-sm">
+            <i class="fa-solid fa-file-signature me-1"></i> Claims Queue
+          </a>
+          <a href="/index.html" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="fa-solid fa-globe me-1"></i> Public Site
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Handover Code Verification Widget (Prominent for Staff & Security) -->
+      <div class="card-custom p-4 mb-4 border-2 border-primary shadow-sm bg-white" id="handoverQuickWidget">
+        <div class="row align-items-center g-3">
+          <div class="col-lg-7">
+            <div class="d-flex align-items-center gap-3">
+              <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width:52px; height:52px; font-size:1.4rem;">
+                <i class="fa-solid fa-key"></i>
+              </div>
+              <div>
+                <h5 class="fw-bold text-dark mb-1">Quick Handover Code Verification</h5>
+                <p class="text-muted small mb-0">Student presenting a collection code? Enter it below to verify and complete the return instantly.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-5">
+            <form id="quickHandoverForm" class="d-flex gap-2">
+              <input type="text" id="quickCodeInput" class="form-control form-control-lg text-uppercase fw-bold text-center letter-spacing-2" placeholder="L2F-XXXX" required>
+              <button type="submit" class="btn btn-success fw-bold px-4 rounded-3 text-nowrap shadow-sm">
+                <i class="fa-solid fa-check-circle me-1"></i> Verify Code
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Campus Broadcast & Notification Dispatcher Card (Staff & Admin) -->
+      <div class="card-custom p-4 mb-4 border-2 border-warning shadow-sm bg-white" id="broadcastNotificationCard">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-warning-subtle text-dark d-flex align-items-center justify-content-center flex-shrink-0" style="width:48px; height:48px; font-size:1.3rem;">
+              <i class="fa-solid fa-bullhorn text-warning"></i>
+            </div>
+            <div>
+              <h5 class="fw-bold text-dark mb-0">Broadcast Campus Notification</h5>
+              <p class="text-muted small mb-0" id="broadcastCardSub">Dispatch official alerts & announcements to campus users</p>
+            </div>
+          </div>
+          <button type="button" class="btn btn-outline-warning btn-sm rounded-pill px-3 fw-bold text-dark" data-bs-toggle="collapse" data-bs-target="#broadcastCollapse" aria-expanded="true">
+            <i class="fa-solid fa-sliders me-1"></i> Toggle Dispatch Form
+          </button>
+        </div>
+
+        <div class="collapse show" id="broadcastCollapse">
+          <form id="broadcastForm" class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-dark">Target Audience <span class="text-danger">*</span></label>
+              <select id="broadcastAudience" class="form-select form-select-sm" required>
+                <!-- Populated dynamically based on role -->
+              </select>
+              <div class="form-text small" id="audienceHelpText">Select which users will receive this alert.</div>
+            </div>
+
+            <div class="col-md-5">
+              <label class="form-label small fw-bold text-dark">Alert Title / Headline <span class="text-danger">*</span></label>
+              <input type="text" id="broadcastTitle" class="form-control form-control-sm" placeholder="e.g. Keys found near Library Block B" required>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label small fw-bold text-dark">Priority Level</label>
+              <select id="broadcastPriority" class="form-select form-select-sm">
+                <option value="NORMAL">📢 Normal Announcement</option>
+                <option value="URGENT">🚨 Urgent Security Alert</option>
+              </select>
+            </div>
+
+            <div class="col-md-9">
+              <label class="form-label small fw-bold text-dark">Notification Message <span class="text-danger">*</span></label>
+              <textarea id="broadcastMessage" class="form-control form-control-sm" rows="2" placeholder="Write message to display in target users' notification bell and alerts dashboard..." required></textarea>
+            </div>
+
+            <div class="col-md-3 d-flex flex-column justify-content-end">
+              <button type="submit" id="broadcastSubmitBtn" class="btn btn-warning fw-bold rounded-pill w-100 py-2 shadow-sm text-dark">
+                <i class="fa-solid fa-paper-plane me-1"></i> Send Broadcast
+              </button>
+            </div>
+          </form>
+
+          <!-- Recent Broadcasts List -->
+          <div class="mt-4 pt-3 border-top" id="recentBroadcastsContainer">
+            <h6 class="fw-bold text-dark small mb-2"><i class="fa-solid fa-clock-rotate-left me-1 text-primary"></i> Recently Dispatched Broadcasts</h6>
+            <div id="broadcastHistoryList" class="small text-muted">Loading recent dispatches...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards with Clear Spacing -->
+      <div class="row g-3 mb-4">
+        <!-- Total Users (Student + Staff) -->
+        <div class="col-xl-3 col-md-6">
+          <div class="kpi-card">
+            <div>
+              <div id="admUsers" class="kpi-val text-primary">0</div>
+              <div class="kpi-lbl">Total Campus Users</div>
+              <small class="text-muted fw-semibold" id="userSubCounts">0 Students • 0 Staff</small>
+            </div>
+            <div class="kpi-icon indigo"><i class="fa-solid fa-users"></i></div>
+          </div>
+        </div>
+
+        <!-- Lost Reports -->
+        <div class="col-xl-3 col-md-6">
+          <div class="kpi-card">
+            <div>
+              <div id="admLost" class="kpi-val text-danger">0</div>
+              <div class="kpi-lbl">Reported Lost</div>
+              <small class="text-muted fw-semibold">Missing belongings</small>
+            </div>
+            <div class="kpi-icon amber"><i class="fa-solid fa-bullhorn"></i></div>
+          </div>
+        </div>
+
+        <!-- Found Reports -->
+        <div class="col-xl-3 col-md-6">
+          <div class="kpi-card">
+            <div>
+              <div id="admFound" class="kpi-val text-success">0</div>
+              <div class="kpi-lbl">Deposited Found</div>
+              <small class="text-muted fw-semibold">In safe campus custody</small>
+            </div>
+            <div class="kpi-icon teal"><i class="fa-solid fa-hand-holding-hand"></i></div>
+          </div>
+        </div>
+
+        <!-- Recovery Success Rate -->
+        <div class="col-xl-3 col-md-6">
+          <div class="kpi-card">
+            <div>
+              <div id="admRate" class="kpi-val text-emerald">0%</div>
+              <div class="kpi-lbl">Recovery Success Rate</div>
+              <small class="text-muted fw-semibold" id="admReturnedItems">0 items reconnected</small>
+            </div>
+            <div class="kpi-icon emerald"><i class="fa-solid fa-circle-check"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: User Overview Tables (Tailored for Staff vs Admin) -->
+      <div class="row g-4 mb-4">
+        
+        <!-- Registered Students Overview (Full width for staff, half width for admin) -->
+        <div class="col-lg-6" id="studentQuickCol">
+          <div class="card-custom p-4 shadow-sm h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <span class="badge bg-success-subtle text-success border border-success fw-bold px-2 py-0.5 rounded-pill mb-1">Campus Students</span>
+                <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-graduation-cap text-success me-2"></i> Student Users</h5>
+              </div>
+              <a href="/admin/users.html?role=STUDENT" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold">
+                View All <i class="fa-solid fa-arrow-right ms-1"></i>
+              </a>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover table-sm align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Student Name</th>
+                    <th>Roll ID</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="studentQuickTable">
+                  <tr><td colspan="4" class="text-center py-3 text-muted">Loading student directory...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Registered Security & Staff Overview (Visible to Admin) -->
+        <div class="col-lg-6" id="staffQuickCol">
+          <div class="card-custom p-4 shadow-sm h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <span class="badge bg-primary-subtle text-primary border border-primary fw-bold px-2 py-0.5 rounded-pill mb-1">Security & Helpdesk</span>
+                <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-user-shield text-primary me-2"></i> Staff Users</h5>
+              </div>
+              <a href="/admin/users.html?role=STAFF" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold">
+                View All <i class="fa-solid fa-arrow-right ms-1"></i>
+              </a>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover table-sm align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Staff Name</th>
+                    <th>Staff ID</th>
+                    <th>Designation</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="staffQuickTable">
+                  <tr><td colspan="4" class="text-center py-3 text-muted">Loading staff directory...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Pending Claims Inspection Queue for Staff & Admin -->
+      <div class="card-custom p-4 mb-4 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div>
+            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning fw-bold px-2 py-0.5 rounded-pill mb-1">Action Required</span>
+            <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-clipboard-check text-warning me-2"></i> Pending Ownership Claims to Inspect</h5>
+          </div>
+          <a href="/admin/claims.html" class="btn btn-primary-custom btn-sm rounded-pill px-3 fw-bold">
+            All Claims Queue <i class="fa-solid fa-arrow-right ms-1"></i>
+          </a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Item</th>
+                <th>Claimant Student</th>
+                <th>Submitted Reason</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody id="pendingClaimsTable">
+              <tr><td colspan="5" class="text-center py-3 text-muted">Loading claims queue...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Abuse Reports & Flagged Listings Queue (Direct Action for Staff & Admin) -->
+      <div class="card-custom p-4 mb-4 shadow-sm border-2 border-danger border-opacity-25" id="abuseReportsQuickRow">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div>
+            <span class="badge bg-danger-subtle text-danger border border-danger fw-bold px-2 py-0.5 rounded-pill mb-1">Abuse & Security Moderation</span>
+            <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-triangle-exclamation text-danger me-2"></i> Unresolved Abuse Reports</h5>
+          </div>
+          <a href="/admin/reports.html" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold">
+            View All Reports <i class="fa-solid fa-arrow-right ms-1"></i>
+          </a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Reported Item</th>
+                <th>Report Reason</th>
+                <th>Reporter</th>
+                <th>Date</th>
+                <th class="text-end">Moderation Action</th>
+              </tr>
+            </thead>
+            <tbody id="abuseReportsQuickTable">
+              <tr><td colspan="5" class="text-center py-3 text-muted">Loading reports queue...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Charts Row (Executive Analytics for Admins) -->
+      <div class="row g-4 mb-4" id="analyticsChartsRow">
+        <div class="col-lg-7">
+          <div class="card-custom p-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-chart-column text-primary me-2"></i> Reports vs Recoveries</h5>
+              <span class="badge bg-light text-dark border">All-Time</span>
+            </div>
+            <canvas id="mainChart" height="230"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          <div class="card-custom p-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-chart-pie text-secondary me-2"></i> Category Breakdown</h5>
+              <span class="badge bg-light text-dark border">By Items</span>
+            </div>
+            <canvas id="categoryChart" height="230"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/navbar.js"></script>
+  <script src="/js/admin.js"></script>
+  <script>
+    // Bulletproof Badge Formatters
+    function getStatusBadge(status) {
+      if (status === 'ACTIVE') return '<span class="badge bg-success text-white px-2.5 py-1 rounded-pill shadow-sm"><i class="fa-solid fa-circle-check me-1"></i> ACTIVE</span>';
+      if (status === 'SUSPENDED') return '<span class="badge bg-danger text-white px-2.5 py-1 rounded-pill shadow-sm"><i class="fa-solid fa-ban me-1"></i> SUSPENDED</span>';
+      return `<span class="badge bg-secondary text-white px-2.5 py-1 rounded-pill">${status || 'ACTIVE'}</span>`;
+    }
+
+    function getRoleBadge(role) {
+      if (role === 'ADMIN') return '<span class="badge bg-danger-subtle text-danger border border-danger fw-bold px-2.5 py-1 rounded-pill"><i class="fa-solid fa-shield-halved me-1"></i> ADMIN</span>';
+      if (role === 'STAFF') return '<span class="badge bg-primary-subtle text-primary border border-primary fw-bold px-2.5 py-1 rounded-pill"><i class="fa-solid fa-user-shield me-1"></i> STAFF</span>';
+      return '<span class="badge bg-success-subtle text-success border border-success fw-bold px-2.5 py-1 rounded-pill"><i class="fa-solid fa-graduation-cap me-1"></i> STUDENT</span>';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      configureRoleView();
+      loadDashboard();
+      setupQuickHandover();
+      setupBroadcastSystem();
+    });
+
+    function configureRoleView() {
+      const user = Auth.getUser();
+      if (!user) return;
+
+      const isStaff = user.role === 'STAFF';
+      const roleBadge = document.getElementById('sidebarRoleBadge');
+      const sidebarTitle = document.getElementById('sidebarTitle');
+      const rolePill = document.getElementById('dashboardRolePill');
+      const heading = document.getElementById('dashboardHeading');
+      const subHeading = document.getElementById('dashboardSubHeading');
+
+      if (isStaff) {
+        roleBadge.textContent = 'Staff Portal';
+        sidebarTitle.textContent = 'Security Desk';
+        rolePill.textContent = '🛡️ Logged in as: Security Staff';
+        heading.textContent = 'Staff Operations & Security Command';
+        subHeading.textContent = 'Verify student handover codes, inspect claims, and lookup student roll IDs.';
+        
+        // Hide Admin-only sidebar links for Staff
+        document.getElementById('navSettings')?.classList.add('d-none');
+        document.getElementById('navAudit')?.classList.add('d-none');
+        document.getElementById('navAnalytics')?.classList.add('d-none');
+
+        // Staff Focus: Make Student table full width, hide staff management & charts
+        const studCol = document.getElementById('studentQuickCol');
+        if (studCol) {
+          studCol.className = 'col-12';
+        }
+        document.getElementById('staffQuickCol')?.classList.add('d-none');
+        document.getElementById('analyticsChartsRow')?.classList.add('d-none');
+      } else {
+        roleBadge.textContent = 'Super Admin';
+        sidebarTitle.textContent = 'Executive Command';
+        rolePill.textContent = '⚡ Logged in as: System Administrator';
+        heading.textContent = 'Executive Campus Administration Command';
+        subHeading.textContent = 'Full governance over users, claims, listings, abuse moderation, and system settings.';
+
+        // Admin Focus: Show side-by-side student & staff columns and analytics
+        const studCol = document.getElementById('studentQuickCol');
+        if (studCol) {
+          studCol.className = 'col-lg-6';
+        }
+        document.getElementById('staffQuickCol')?.classList.remove('d-none');
+        document.getElementById('analyticsChartsRow')?.classList.remove('d-none');
+      }
+    }
+
+    async function loadDashboard() {
+      try {
+        const res = await API.get('/admin/dashboard');
+        if (res.success && res.data) {
+          const d = res.data;
+
+          API.animateCounter(document.getElementById('admUsers'), d.totalUsers || 0);
+          API.animateCounter(document.getElementById('admLost'), d.totalLostItems || 0);
+          API.animateCounter(document.getElementById('admFound'), d.totalFoundItems || 0);
+          document.getElementById('admRate').textContent = `${d.recoveryRate || 0}%`;
+          document.getElementById('admReturnedItems').textContent = `${d.returnedItems || 0} items successfully reconnected`;
+          document.getElementById('userSubCounts').textContent = `${d.totalStudents || 0} Students • ${d.totalStaff || 0} Staff`;
+
+          // Render Quick Students Table (Guaranteed rendering)
+          const studTbody = document.getElementById('studentQuickTable');
+          if (d.recentStudents && d.recentStudents.length > 0) {
+            studTbody.innerHTML = d.recentStudents.map(s => `
+              <tr>
+                <td>
+                  <strong class="text-dark">${s.name || 'Student'}</strong><br>
+                  <small class="text-muted">${s.email || ''}</small>
+                </td>
+                <td><code class="fw-bold text-primary">${s.collegeId || 'N/A'}</code></td>
+                <td><small class="text-dark">${s.department || 'General'}</small></td>
+                <td>${getStatusBadge(s.accountStatus)}</td>
+              </tr>
+            `).join('');
+          } else {
+            studTbody.innerHTML = `<tr><td colspan="4" class="text-center py-3 text-muted">No students registered yet.</td></tr>`;
+          }
+
+          // Render Quick Staff Table
+          const staffTbody = document.getElementById('staffQuickTable');
+          if (d.recentStaff && d.recentStaff.length > 0) {
+            staffTbody.innerHTML = d.recentStaff.map(s => `
+              <tr>
+                <td>
+                  <strong class="text-dark">${s.name || 'Staff Member'}</strong><br>
+                  <small class="text-muted">${s.email || ''}</small>
+                </td>
+                <td><code class="fw-bold text-primary">${s.collegeId || 'N/A'}</code></td>
+                <td><small class="text-dark">${s.department || 'Security'}</small></td>
+                <td>${getStatusBadge(s.accountStatus)}</td>
+              </tr>
+            `).join('');
+          } else {
+            staffTbody.innerHTML = `<tr><td colspan="4" class="text-center py-3 text-muted">No staff accounts registered yet.</td></tr>`;
+          }
+
+          // Render Pending Claims Table
+          const claimsTbody = document.getElementById('pendingClaimsTable');
+          if (d.pendingClaimsList && d.pendingClaimsList.length > 0) {
+            claimsTbody.innerHTML = d.pendingClaimsList.map(c => `
+              <tr>
+                <td>
+                  <strong class="text-dark">${c.itemId ? c.itemId.title : 'Item'}</strong><br>
+                  <small class="text-muted"><i class="fa-solid fa-location-dot me-1"></i> ${c.itemId ? (c.itemId.location || '') : ''}</small>
+                </td>
+                <td>
+                  <span class="fw-semibold text-dark">${c.claimantId ? c.claimantId.name : 'Unknown'}</span><br>
+                  <small class="text-muted"><code>${c.claimantId ? (c.claimantId.collegeId || '') : ''}</code> • ${c.claimantId ? (c.claimantId.phone || '') : ''}</small>
+                </td>
+                <td><small class="text-muted">${c.reason || 'No reason specified'}</small></td>
+                <td><span class="badge bg-warning-subtle text-warning-emphasis border border-warning">${c.status}</span></td>
+                <td class="text-end">
+                  <a href="/admin/claims.html" class="btn btn-sm btn-primary-custom rounded-pill px-3 fw-bold">
+                    <i class="fa-solid fa-eye me-1"></i> Inspect
+                  </a>
+                </td>
+              </tr>
+            `).join('');
+          } else {
+            claimsTbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted"><i class="fa-solid fa-circle-check text-success me-1"></i> All claims reviewed! No pending claims in queue.</td></tr>`;
+          }
+
+          // Render Abuse Reports Queue
+          const reportsTbody = document.getElementById('abuseReportsQuickTable');
+          if (d.recentReports && d.recentReports.length > 0) {
+            reportsTbody.innerHTML = d.recentReports.map(r => `
+              <tr>
+                <td>
+                  <strong class="text-dark">${r.itemId ? r.itemId.title : 'Flagged Listing'}</strong><br>
+                  <span class="badge bg-light text-muted border small">${r.itemModel}</span>
+                </td>
+                <td>
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-semibold">${r.reason}</span>
+                  ${r.customReason ? `<div class="small text-muted mt-1 fst-italic">"${r.customReason}"</div>` : ''}
+                </td>
+                <td>
+                  <div class="small fw-semibold text-dark">${r.reporterId ? r.reporterId.name : 'Anonymous'}</div>
+                  <small class="text-muted">${r.reporterId ? r.reporterId.email : ''}</small>
+                </td>
+                <td><small class="text-muted">${new Date(r.createdAt).toLocaleDateString()}</small></td>
+                <td class="text-end">
+                  <div class="d-inline-flex gap-2">
+                    <button onclick="quickBlockUser('${r._id}')" class="btn btn-sm btn-danger rounded-pill px-3 fw-bold shadow-sm">
+                      <i class="fa-solid fa-ban me-1"></i> Block Abusive User
+                    </button>
+                    <a href="/admin/reports.html" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5">
+                      Review
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            `).join('');
+          } else {
+            reportsTbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted"><i class="fa-solid fa-shield-halved text-success me-1"></i> No active abuse reports. Campus feed is secure!</td></tr>`;
+          }
+
+          // Charts (Admin View Only)
+          if (document.getElementById('mainChart') && !document.getElementById('analyticsChartsRow').classList.contains('d-none')) {
+            new Chart(document.getElementById('mainChart'), {
+              type: 'bar',
+              data: {
+                labels: ['Reported Lost', 'Reported Found', 'Active Claims', 'Returned Items'],
+                datasets: [{
+                  data: [d.totalLostItems || 0, d.totalFoundItems || 0, d.activeClaims || 0, d.returnedItems || 0],
+                  backgroundColor: ['#ef4444', '#3b82f6', '#f59e0b', '#10b981'],
+                  borderRadius: 8
+                }]
+              },
+              options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+          }
+
+          if (document.getElementById('categoryChart') && !document.getElementById('analyticsChartsRow').classList.contains('d-none')) {
+            const catLabels = (d.analytics && d.analytics.lostByCat) ? d.analytics.lostByCat.map(c => c._id || 'Other') : ['Electronics', 'Wallets', 'Keys'];
+            const catCounts = (d.analytics && d.analytics.lostByCat) ? d.analytics.lostByCat.map(c => c.count) : [2, 1, 1];
+
+            new Chart(document.getElementById('categoryChart'), {
+              type: 'doughnut',
+              data: {
+                labels: catLabels.length > 0 ? catLabels : ['Electronics', 'Wallets', 'Keys'],
+                datasets: [{
+                  data: catCounts.length > 0 ? catCounts : [2, 1, 1],
+                  backgroundColor: ['#4f46e5', '#0d9488', '#f59e0b', '#ec4899', '#8b5cf6']
+                }]
+              },
+              options: { responsive: true }
+            });
+          }
+
+        }
+      } catch (err) {
+        console.error('Error loading dashboard:', err);
+      }
+    }
+
+    async function quickBlockUser(reportId) {
+      if (!confirm('⚠️ Are you sure the abuse report is valid?\n\nThis will immediately SUSPEND the author who posted this item and REMOVE the listing from campus.')) {
+        return;
+      }
+
+      try {
+        const res = await API.post(`/admin/reports/${reportId}/block-user`, {});
+        if (res.success) {
+          API.showToast(res.message || 'Abusive user successfully suspended and listing removed!', 'success');
+          loadDashboard();
+        }
+      } catch (err) {
+        API.showToast(err.message || 'Failed to block user', 'error');
+      }
+    }
+
+    function setupQuickHandover() {
+      document.getElementById('quickHandoverForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const code = document.getElementById('quickCodeInput').value.trim().toUpperCase();
+        if (!code) return;
+
+        try {
+          // Find claim matching handover code
+          const claimsRes = await API.get('/admin/claims');
+          if (claimsRes.success && claimsRes.data) {
+            const matchingClaim = claimsRes.data.find(c => c.handoverCode && c.handoverCode.toUpperCase() === code);
+            if (!matchingClaim) {
+              API.showToast(`Invalid code "${code}". No matching approved claim found.`, 'error');
+              return;
+            }
+
+            const handoverRes = await API.post(`/claims/${matchingClaim._id}/handover`, { handoverCode: code });
+            if (handoverRes.success) {
+              API.showToast(`🎉 Handover Verified! Item "${matchingClaim.itemId ? matchingClaim.itemId.title : 'Item'}" successfully returned.`, 'success');
+              document.getElementById('quickCodeInput').value = '';
+              loadDashboard();
+            }
+          }
+        } catch (err) {
+          API.showToast(err.message || 'Handover verification failed', 'error');
+        }
+      });
+    }
+
+    function setupBroadcastSystem() {
+      const user = Auth.getUser();
+      if (!user) return;
+
+      setupBroadcastAudience(user.role);
+      loadBroadcastHistory();
+
+      document.getElementById('broadcastForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('broadcastSubmitBtn');
+        const title = document.getElementById('broadcastTitle').value.trim();
+        const message = document.getElementById('broadcastMessage').value.trim();
+        const targetAudience = document.getElementById('broadcastAudience').value;
+        const priority = document.getElementById('broadcastPriority').value;
+
+        if (!title || !message) {
+          API.showToast('Please provide both notification title and message', 'error');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Dispatching...`;
+
+        try {
+          const res = await API.post('/notifications/broadcast', {
+            title,
+            message,
+            targetAudience,
+            priority,
+          });
+
+          if (res.success) {
+            API.showToast(`🎉 ${res.message}`, 'success');
+            document.getElementById('broadcastTitle').value = '';
+            document.getElementById('broadcastMessage').value = '';
+            loadBroadcastHistory();
+          }
+        } catch (err) {
+          API.showToast(err.message || 'Failed to dispatch broadcast', 'error');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane me-1"></i> Send Broadcast`;
+        }
+      });
+    }
+
+    function setupBroadcastAudience(role) {
+      const select = document.getElementById('broadcastAudience');
+      const help = document.getElementById('audienceHelpText');
+      if (!select) return;
+
+      if (role === 'ADMIN') {
+        select.innerHTML = `
+          <option value="ALL">🌐 All Campus (Both Staff & Students)</option>
+          <option value="STAFF">🛡️ Only Campus Staff & Security</option>
+          <option value="STUDENTS">🎓 Only Enrolled Students</option>
+        `;
+        if (help) help.textContent = 'Administrator privilege: Broadcast to everyone or target groups.';
+      } else {
+        // Staff role: Staff can make notification for student and also for staff
+        select.innerHTML = `
+          <option value="STUDENTS">🎓 All Enrolled Students</option>
+          <option value="STAFF">🛡️ Security & Staff Officers</option>
+        `;
+        if (help) help.textContent = 'Staff permission: Send notification to Students or Staff team.';
+      }
+    }
+
+    async function loadBroadcastHistory() {
+      const container = document.getElementById('broadcastHistoryList');
+      if (!container) return;
+
+      try {
+        const res = await API.get('/notifications/broadcasts');
+        if (res.success && res.data && res.data.length > 0) {
+          container.innerHTML = `
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Alert Title</th>
+                    <th>Audience</th>
+                    <th>Priority</th>
+                    <th>Dispatched By</th>
+                    <th>Date & Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${res.data.slice(0, 6).map(b => `
+                    <tr>
+                      <td class="fw-semibold text-dark text-truncate" style="max-width: 280px;">${b.title}</td>
+                      <td>
+                        <span class="badge ${b.targetAudience === 'ALL' ? 'bg-primary text-white' : (b.targetAudience === 'STAFF' ? 'bg-info-subtle text-info border border-info' : 'bg-success-subtle text-success border border-success')} px-2 py-0.5 rounded-pill small">
+                          ${b.targetAudience}
+                        </span>
+                      </td>
+                      <td>
+                        <span class="badge ${b.priority === 'URGENT' ? 'bg-danger text-white' : 'bg-secondary text-white'} px-2 py-0.5 rounded-pill small">
+                          ${b.priority}
+                        </span>
+                      </td>
+                      <td class="small">
+                        <strong>${b.senderId ? b.senderId.name : (b.senderRole || 'Staff')}</strong>
+                        <span class="text-muted">(${b.senderRole || 'Staff'})</span>
+                      </td>
+                      <td class="text-muted small">${new Date(b.createdAt).toLocaleString()}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        } else {
+          container.innerHTML = `<div class="text-muted small p-2 text-center bg-light rounded border"><i class="fa-solid fa-bullhorn me-1"></i> No broadcasts sent recently. Use the form above to dispatch your first campus alert.</div>`;
+        }
+      } catch (e) {
+        container.innerHTML = `<div class="text-muted small">No broadcasts recorded yet.</div>`;
+      }
+    }
+  </script>
+</body>
+</html>
