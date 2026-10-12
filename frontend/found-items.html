@@ -196,7 +196,17 @@
           `;
         }
       } catch (err) {
-        container.innerHTML = `<div class="col-12 text-center py-5 text-danger">Failed to fetch items.</div>`;
+        console.error('Error fetching found items:', err);
+        container.innerHTML = `
+          <div class="col-12 text-center py-5 card-custom p-4 text-danger">
+            <i class="fa-solid fa-triangle-exclamation fs-2 mb-2"></i>
+            <h6 class="fw-bold">Unable to load found items at this moment</h6>
+            <p class="small text-muted mb-3">${err.message || 'Please check your connection and try again.'}</p>
+            <button onclick="fetchFoundItems()" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+              <i class="fa-solid fa-rotate-right me-1"></i> Retry
+            </button>
+          </div>
+        `;
       }
     }
 

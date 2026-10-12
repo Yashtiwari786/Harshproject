@@ -19,7 +19,7 @@ function createHybridModel(modelName, schema) {
   // Return a transparent proxy
   return new Proxy(mongooseModel, {
     get(target, prop, receiver) {
-      const isConnected = mongoose.connection.readyState === 1;
+      const isConnected = (target.db && target.db.readyState === 1) || mongoose.connection.readyState === 1;
 
       if (!isConnected) {
         if (prop in fallbackAdapter) {

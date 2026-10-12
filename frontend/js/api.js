@@ -38,10 +38,18 @@ class ApiClient {
         if (response.status === 401) {
           localStorage.removeItem('l2f_token');
           localStorage.removeItem('l2f_user');
-          if (!window.location.pathname.endsWith('login.html') && 
-              !window.location.pathname.endsWith('register.html') && 
-              window.location.pathname !== '/' &&
-              !window.location.pathname.endsWith('index.html')) {
+          const p = window.location.pathname.toLowerCase();
+          const isProtectedPage = 
+            p.includes('dashboard') ||
+            p.includes('profile') ||
+            p.includes('report-lost') ||
+            p.includes('report-found') ||
+            p.includes('claim.html') ||
+            p.includes('/claim') ||
+            p.includes('notifications') ||
+            p.includes('/admin');
+
+          if (isProtectedPage && !p.includes('login') && !p.includes('register')) {
             window.location.href = '/login.html?expired=true';
           }
         }

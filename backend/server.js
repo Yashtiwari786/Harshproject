@@ -5,12 +5,13 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const helmet = require('helmet');
+const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
 // Load environment variables
 dotenv.config();
 
-// Connect to Database
+// Initialize Database connection
 connectDB();
 
 const app = express();
@@ -24,6 +25,18 @@ app.use(
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Ensure MongoDB Atlas is connected before executing any API route (crucial for Serverless / Vercel cold starts)
+app.use('/api', async (req, res, next) => {
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      await connectDB();
+    }
+  } catch (err) {
+    console.warn('[Database Connection Middleware Notice]:', err.message);
+  }
+  next();
+});
 
 // Serve static frontend files and uploaded media
 const frontendDir = path.join(__dirname, '../frontend');
@@ -100,13 +113,16 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => {
-  console.log(`\n======================================================`);
-  console.log(`🚀 Lost2Found Campus Server running on port ${PORT}`);
-  console.log(`URL: http://localhost:${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`======================================================\n`);
-});
+// Listen only when run directly (local node execution). On Vercel, app is exported as serverless handler.
+if (process.env.VERCEL !== '1' && require.main === module) {
+  const server = app.listen(PORT, () => {
+    console.log(`\n======================================================`);
+    console.log(`🚀 Lost2Found Campus Server running on port ${PORT}`);
+    console.log(`URL: http://localhost:${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`======================================================\n`);
+  });
+}
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
