@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claims & Handover — Lost2Found Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="bg-light">
+
+  <div id="navbarContainer"></div>
+
+  <div class="admin-wrapper">
+    <div class="admin-sidebar">
+      <div class="px-2 mb-3">
+        <span class="badge bg-primary text-uppercase px-2 py-1 mb-2">Staff & Admin</span>
+        <h5 class="fw-extrabold text-white mb-0">Command Center</h5>
+      </div>
+      <nav class="admin-sidebar-nav">
+        <a href="/admin/dashboard.html" class="admin-nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+        <a href="/admin/users.html" class="admin-nav-item"><i class="fa-solid fa-users"></i> User Accounts</a>
+        <a href="/admin/items.html" class="admin-nav-item"><i class="fa-solid fa-boxes-stacked"></i> Items Queue</a>
+        <a href="/admin/claims.html" class="admin-nav-item active"><i class="fa-solid fa-file-signature"></i> Claims & Handover</a>
+        <a href="/admin/reports.html" class="admin-nav-item"><i class="fa-solid fa-flag"></i> Abuse Reports</a>
+        <a href="/admin/analytics.html" class="admin-nav-item"><i class="fa-solid fa-chart-pie"></i> Analytics</a>
+        <a href="/admin/settings.html" class="admin-nav-item"><i class="fa-solid fa-gear"></i> Campus Settings</a>
+        <a href="/admin/audit-logs.html" class="admin-nav-item"><i class="fa-solid fa-shield-halved"></i> Audit Trail</a>
+      </nav>
+    </div>
+
+    <div class="admin-content">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+          <h2 class="fw-extrabold text-dark mb-1">Claim Verification Queue</h2>
+          <p class="text-muted small mb-0">Compare claimant ownership answers against private notes & verify handover codes</p>
+        </div>
+      </div>
+
+      <!-- Claims Table -->
+      <div class="table-custom shadow-sm border-0">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Claim ID</th>
+              <th>Item</th>
+              <th>Claimant</th>
+              <th>Submitted</th>
+              <th>Status</th>
+              <th>Handover Code</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="claimsTableBody">
+            <tr><td colspan="7" class="text-center py-4">Loading claims queue...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Modal -->
+  <div class="modal fade" id="reviewClaimModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-file-shield text-primary me-2"></i> Inspect Ownership Claim</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4" id="reviewModalBody">
+          <div class="text-center py-3"><div class="spinner-border text-primary"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Handover Modal -->
+  <div class="modal fade" id="handoverModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-handshake me-2"></i> Verify Handover Code & Complete Return</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form id="handoverForm">
+            <input type="hidden" id="handoverClaimId">
+            <p class="small text-muted mb-3">
+              1. Inspect student's physical College ID card.<br>
+              2. Enter the verification code presented by the claimant.
+            </p>
+            <div class="mb-3">
+              <label class="form-label fw-bold">Verification Code (e.g. L2F-8492) *</label>
+              <input type="text" id="handoverCodeInput" class="form-control form-control-lg text-uppercase fw-bold text-center letter-spacing-2" placeholder="L2F-XXXX" required>
+            </div>
+            <button type="submit" class="btn btn-success w-100 py-3 fw-bold rounded-pill shadow">
+              <i class="fa-solid fa-check-circle me-1"></i> Verify & Mark Item Returned
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/navbar.js"></script>
+  <script src="/js/admin.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchClaims();
+    });
+
+    async function fetchClaims() {
+      const tbody = document.getElementById('claimsTableBody');
+      try {
+        const res = await API.get('/admin/claims');
+        if (res.success && res.data.length > 0) {
+          tbody.innerHTML = res.data.map(c => `
+            <tr>
+              <td><code>#${c._id.substring(c._id.length - 6)}</code></td>
+              <td>
+                <div class="fw-bold text-dark">${c.itemId ? c.itemId.title : 'Item'}</div>
+                <small class="text-muted">${c.itemModel}</small>
+              </td>
+              <td>
+                <div class="fw-semibold">${c.claimantId ? c.claimantId.name : 'Unknown'}</div>
+                <small class="text-muted">${c.claimantId ? c.claimantId.collegeId : ''}</small>
+              </td>
+              <td>${new Date(c.createdAt).toLocaleDateString()}</td>
+              <td><span class="badge-status badge-${c.status.toLowerCase()}">${c.status}</span></td>
+              <td>${c.handoverCode ? `<code class="fw-bold text-success">${c.handoverCode}</code>` : '—'}</td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <button onclick="openReviewModal('${c._id}')" class="btn btn-outline-primary rounded-start">
+                    <i class="fa-solid fa-eye me-1"></i> Inspect
+                  </button>
+                  ${c.status === 'APPROVED' ? `
+                    <button onclick="openHandoverModal('${c._id}')" class="btn btn-success rounded-end">
+                      <i class="fa-solid fa-key me-1"></i> Handover
+                    </button>
+                  ` : ''}
+                </div>
+              </td>
+            </tr>
+          `).join('');
+        } else {
+          tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No claims in queue.</td></tr>`;
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-danger">Failed to load claims.</td></tr>`;
+      }
+    }
+
+    async function openReviewModal(claimId) {
+      const body = document.getElementById('reviewModalBody');
+      const modal = new bootstrap.Modal(document.getElementById('reviewClaimModal'));
+      modal.show();
+
+      try {
+        const res = await API.get(`/claims/${claimId}`);
+        if (res.success && res.data) {
+          const c = res.data;
+          body.innerHTML = `
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <h6 class="fw-bold text-primary mb-1">Claimant Identity</h6>
+                <div class="p-3 border rounded-3 bg-light small">
+                  <div><strong>Name:</strong> ${c.claimantId ? c.claimantId.name : ''}</div>
+                  <div><strong>Email:</strong> ${c.claimantId ? c.claimantId.email : ''}</div>
+                  <div><strong>College ID:</strong> ${c.claimantId ? c.claimantId.collegeId : ''}</div>
+                  <div><strong>Phone:</strong> ${c.claimantId ? c.claimantId.phone : ''}</div>
+                  <div><strong>Department:</strong> ${c.claimantId ? c.claimantId.department : ''}</div>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <h6 class="fw-bold text-primary mb-1">Target Item</h6>
+                <div class="p-3 border rounded-3 bg-light small">
+                  <div><strong>Title:</strong> ${c.itemId ? c.itemId.title : 'Item'}</div>
+                  <div><strong>Category:</strong> ${c.itemId ? c.itemId.category : ''}</div>
+                  <div><strong>Location:</strong> ${c.itemId ? c.itemId.location : ''}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <h6 class="fw-bold text-dark">Reason for Claim</h6>
+              <div class="p-2 border rounded small">${c.reason}</div>
+            </div>
+
+            <div class="mb-3">
+              <h6 class="fw-bold text-dark">Submitted Ownership Verification Answers</h6>
+              <div class="p-3 border border-warning rounded-3 bg-warning-subtle text-dark fw-medium small">
+                ${c.ownershipDetails}
+              </div>
+            </div>
+
+            ${c.status === 'PENDING' || c.status === 'UNDER_REVIEW' ? `
+              <hr>
+              <div class="mb-3">
+                <label class="form-label fw-bold">Reviewer Verification Remarks</label>
+                <textarea id="reviewNotesInput" class="form-control" rows="2" placeholder="e.g. Identity and unique marks verified against private reporter notes."></textarea>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button onclick="submitReview('${c._id}', 'APPROVED')" class="btn btn-success flex-grow-1 fw-bold rounded-pill">
+                  <i class="fa-solid fa-check me-1"></i> Approve Claim & Issue Handover Code
+                </button>
+                <button onclick="submitReview('${c._id}', 'REJECTED')" class="btn btn-danger flex-grow-1 fw-bold rounded-pill">
+                  <i class="fa-solid fa-xmark me-1"></i> Reject Claim
+                </button>
+              </div>
+            ` : `<div class="alert alert-info py-2 mb-0">Status: <strong>${c.status}</strong></div>`}
+          `;
+        }
+      } catch (err) {
+        body.innerHTML = `<div class="alert alert-danger">Error fetching claim data</div>`;
+      }
+    }
+
+    async function submitReview(claimId, action) {
+      const notes = document.getElementById('reviewNotesInput')?.value || '';
+      try {
+        const res = await API.put(`/claims/${claimId}/review`, { action, reviewNotes: notes });
+        if (res.success) {
+          API.showToast(`Claim successfully ${action.toLowerCase()}`, 'success');
+          bootstrap.Modal.getInstance(document.getElementById('reviewClaimModal')).hide();
+          fetchClaims();
+        }
+      } catch (err) {
+        API.showToast(err.message || 'Review action failed', 'error');
+      }
+    }
+
+    function openHandoverModal(claimId) {
+      document.getElementById('handoverClaimId').value = claimId;
+      document.getElementById('handoverCodeInput').value = '';
+      new bootstrap.Modal(document.getElementById('handoverModal')).show();
+    }
+
+    document.getElementById('handoverForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const claimId = document.getElementById('handoverClaimId').value;
+      const code = document.getElementById('handoverCodeInput').value.trim();
+
+      try {
+        const res = await API.post(`/claims/${claimId}/handover`, { handoverCode: code });
+        if (res.success) {
+          API.showToast('Item return verified! Status set to RETURNED.', 'success');
+          bootstrap.Modal.getInstance(document.getElementById('handoverModal')).hide();
+          fetchClaims();
+        }
+      } catch (err) {
+        API.showToast(err.message || 'Handover code verification failed', 'error');
+      }
+    });
+  </script>
+</body>
+</html>

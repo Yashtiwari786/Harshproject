@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Item Details — Lost2Found</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-light">
+
+  <div id="navbarContainer"></div>
+
+  <div class="container py-4">
+    
+    <!-- Breadcrumb & Back Navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0 small">
+          <li class="breadcrumb-item"><a href="/index.html">Home</a></li>
+          <li class="breadcrumb-item"><a id="breadDirLink" href="/lost-items.html">Directory</a></li>
+          <li class="breadcrumb-item active" id="breadTitle">Item Details</li>
+        </ol>
+      </nav>
+      <a id="backBtn" href="/lost-items.html" class="btn btn-outline-secondary btn-sm rounded-pill">
+        <i class="fa-solid fa-arrow-left me-1"></i> Back
+      </a>
+    </div>
+
+    <!-- Main Item Card -->
+    <div id="itemDetailContainer">
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="text-muted mt-2">Loading item record...</p>
+      </div>
+    </div>
+
+    <!-- Smart Matches Section for Lost Items -->
+    <div id="smartMatchesSection" class="mt-5 d-none animate-slide-up">
+      <div class="border-top pt-4 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1 rounded-pill mb-1">Automated Cross-Reference</span>
+          <h3 class="fw-extrabold text-dark mb-1"><i class="fa-solid fa-wand-magic-sparkles text-primary me-2"></i> Smart Matching Results</h3>
+          <p class="text-muted small mb-0">Our 6-factor algorithm evaluated all active campus findings against this report</p>
+        </div>
+        <span class="badge bg-light text-dark border px-3 py-2 small fw-semibold">
+          <i class="fa-solid fa-gauge-high text-success me-1"></i> Match Threshold: 70%+
+        </span>
+      </div>
+      <div id="smartMatchesGrid" class="row g-4"></div>
+    </div>
+  </div>
+
+  <!-- Abuse Report Modal -->
+  <div class="modal fade" id="reportAbuseModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i> Report Inappropriate Listing</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="abuseForm">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Reason for Report</label>
+              <select id="abuseReason" class="form-select" required>
+                <option value="Fake report">Fake report</option>
+                <option value="Incorrect information">Incorrect information</option>
+                <option value="Suspicious claim">Suspicious claim</option>
+                <option value="Spam">Spam</option>
+                <option value="Inappropriate image">Inappropriate image</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Additional Details for Campus Moderators</label>
+              <textarea id="abuseCustom" class="form-control" rows="3" placeholder="Provide additional context to help staff investigate..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-danger w-100 fw-bold rounded-pill">Submit Report to Security</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="footerContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/navbar.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    let itemType = (urlParams.get('type') || '').toLowerCase();
+    const itemId = urlParams.get('id') || urlParams.get('itemId');
+
+    let currentItem = null;
+    let currentEffectiveType = 'lost';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!itemId) {
+        window.location.href = '/lost-items.html';
+        return;
+      }
+      loadItemDetails();
+    });
+
+    async function loadItemDetails() {
+      const container = document.getElementById('itemDetailContainer');
+      let primaryType = itemType === 'found' ? 'found' : 'lost';
+      let secondaryType = primaryType === 'lost' ? 'found' : 'lost';
+      let item = null;
+      let effectiveType = primaryType;
+
+      try {
+        // Attempt 1: Try primaryType
+        try {
+          const res1 = await API.get(`/${primaryType}/${itemId}`);
+          if (res1 && res1.success && res1.data) {
+            item = res1.data;
+            effectiveType = primaryType;
+          }
+        } catch (e1) {
+          // Attempt 2: Try secondaryType
+          const res2 = await API.get(`/${secondaryType}/${itemId}`);
+          if (res2 && res2.success && res2.data) {
+            item = res2.data;
+            effectiveType = secondaryType;
+          }
+        }
+
+        if (!item) {
+          container.innerHTML = `
+            <div class="card-custom p-5 text-center my-4">
+              <i class="fa-solid fa-circle-exclamation text-danger fs-1 mb-3"></i>
+              <h4 class="fw-bold">Report Record Not Found</h4>
+              <p class="text-muted">Item #${itemId} could not be located in campus lost or found records.</p>
+              <div class="d-flex justify-content-center gap-2 mt-3">
+                <a href="/lost-items.html" class="btn btn-primary-custom rounded-pill px-4">Browse Lost Items</a>
+                <a href="/found-items.html" class="btn btn-secondary-custom rounded-pill px-4">Browse Found Items</a>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        currentItem = item;
+        currentEffectiveType = effectiveType;
+
+        // Update breadcrumbs dynamically based on resolved item type
+        const dirLink = document.getElementById('breadDirLink');
+        const backBtn = document.getElementById('backBtn');
+        if (effectiveType === 'found') {
+          dirLink.href = '/found-items.html';
+          dirLink.textContent = 'Found Items Directory';
+          backBtn.href = '/found-items.html';
+        } else {
+          dirLink.href = '/lost-items.html';
+          dirLink.textContent = 'Lost Items Directory';
+          backBtn.href = '/lost-items.html';
+        }
+        document.getElementById('breadTitle').textContent = item.title;
+
+        const isHandedOver = ['HANDED_OVER', 'RETURNED', 'CLOSED'].includes(item.status);
+
+        let actionBtn = '';
+        if (isHandedOver) {
+          actionBtn = `
+            <div class="p-3 bg-success-subtle text-success border border-success-subtle rounded-3 text-center fw-bold mb-3 shadow-sm">
+              <i class="fa-solid fa-circle-check fs-4 text-success d-block mb-1"></i>
+              Item Handed Over to Verified Owner
+              <div class="small fw-normal text-muted mt-1">Ownership verification completed and physical item delivered. No further claims can be accepted.</div>
+            </div>
+          `;
+        } else if (effectiveType === 'found') {
+          actionBtn = `
+            <a href="/claim.html?itemId=${item._id}&itemModel=FoundItem" class="btn btn-secondary-custom btn-lg w-100 rounded-pill shadow-lg fw-bold mb-3 py-3">
+              <i class="fa-solid fa-hand-holding-heart me-2"></i> "This Might Be Mine" — Submit Ownership Claim
+            </a>
+          `;
+        } else {
+          // Lost item: allow students to submit claim or inspect matches
+          actionBtn = `
+            <div class="d-flex flex-column gap-2 mb-3">
+              <a href="/claim.html?itemId=${item._id}&itemModel=LostItem" class="btn btn-primary-custom btn-lg w-100 rounded-pill shadow-lg fw-bold py-3">
+                <i class="fa-solid fa-hand-holding-heart me-2"></i> Claim This Lost Item / Submit Ownership Verification
+              </a>
+              <button onclick="scrollToMatches()" class="btn btn-outline-primary btn-md w-100 rounded-pill fw-semibold py-2">
+                <i class="fa-solid fa-wand-magic-sparkles me-2"></i> View Possible Smart Matches
+              </button>
+            </div>
+          `;
+        }
+
+        const mainImgUrl = (item.images && item.images.length > 0) ? item.images[0].url : 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&q=80';
+
+        container.innerHTML = `
+          <div class="row g-4 animate-slide-up">
+            <!-- Item Images Showcase -->
+            <div class="col-lg-6">
+              <div class="card-custom p-3 shadow-md">
+                <div class="position-relative overflow-hidden rounded-3 mb-2" style="background:#f1f5f9; height: 380px;">
+                  <img id="mainDisplayImg" src="${mainImgUrl}" class="w-100 h-100 object-fit-cover rounded-3 shadow-sm transition" alt="${item.title}">
+                  <span class="position-absolute top-0 end-0 m-3 badge-status ${isHandedOver ? 'badge-returned bg-success text-white' : (effectiveType === 'lost' ? 'badge-lost' : 'badge-found')} fs-6 shadow">
+                    ${isHandedOver ? 'HANDED OVER' : effectiveType.toUpperCase()}
+                  </span>
+                </div>
+
+                ${item.images && item.images.length > 1 ? `
+                  <div class="d-flex gap-2 overflow-x-auto pt-2">
+                    ${item.images.map(img => `
+                      <img src="${img.url}" onclick="document.getElementById('mainDisplayImg').src = '${img.url}'" class="rounded border shadow-sm cursor-pointer" style="width:65px; height:65px; object-fit:cover; cursor:pointer;">
+                    `).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+
+            <!-- Item Information -->
+            <div class="col-lg-6">
+              <div class="card-custom p-4 p-md-5 h-100 d-flex flex-column justify-content-between shadow-md">
+                <div>
+                  ${item.isSuspendedFromPortal ? `
+                    <div class="alert alert-danger border-danger shadow-sm d-flex align-items-center mb-4 py-2.5 px-3">
+                      <i class="fa-solid fa-triangle-exclamation fs-4 text-danger me-3"></i>
+                      <div class="small">
+                        <strong>Staff & Admin Notice:</strong> The author account for this upload is <strong>SUSPENDED</strong>. This listing has been automatically removed from the public portal, but is retained here for staff inspection.
+                      </div>
+                    </div>
+                  ` : ''}
+
+                  <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                    <span class="badge bg-light text-dark border px-3 py-1.5 rounded-pill fw-bold">${item.category}</span>
+                    <span class="badge ${isHandedOver ? 'bg-success text-white' : 'bg-secondary-subtle text-secondary'} border px-3 py-1 rounded-pill small fw-semibold">
+                      <i class="fa-solid ${isHandedOver ? 'fa-circle-check me-1' : 'fa-clock me-1'}"></i> ${item.status}
+                    </span>
+                  </div>
+
+                  <h2 class="fw-extrabold text-dark mb-2">${item.title}</h2>
+                  <p class="text-muted lead fs-6 mb-4">${item.description}</p>
+
+                  <div class="row g-3 mb-4 p-3 bg-light rounded-3 border small">
+                    <div class="col-6"><strong>Primary Color:</strong> ${item.color || 'N/A'}</div>
+                    <div class="col-6"><strong>Brand / Maker:</strong> ${item.brand || 'N/A'}</div>
+                    <div class="col-6"><strong>${effectiveType === 'lost' ? 'Date Lost' : 'Date Found'}:</strong> ${new Date(item.dateLost || item.dateFound || item.createdAt).toLocaleDateString()}</div>
+                    <div class="col-6"><strong>Campus Location:</strong> ${item.location}</div>
+                    ${item.currentStorageLocation ? `<div class="col-12 border-top pt-2"><strong>Safe Storage Location:</strong> <span class="badge bg-success-subtle text-success">${item.currentStorageLocation}</span></div>` : ''}
+                    ${item.condition ? `<div class="col-6"><strong>Condition:</strong> ${item.condition}</div>` : ''}
+                  </div>
+
+                  <!-- Privacy Shield Information -->
+                  <div class="p-3 bg-white border border-primary border-opacity-25 rounded-3 mb-4 shadow-sm">
+                    <div class="d-flex gap-2">
+                      <i class="fa-solid fa-shield-halved text-primary fs-5 mt-1"></i>
+                      <div>
+                        <h6 class="fw-bold text-dark mb-0">Privacy Shield Protection Active</h6>
+                        <small class="text-muted">Sensitive characteristics (cash amounts, ID cards, serial suffixes) are concealed from public view to prevent fraudulent claims.</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  ${actionBtn}
+                  ${!isHandedOver ? `
+                    <button class="btn btn-link text-danger btn-sm w-100 text-decoration-none mt-1" data-bs-toggle="modal" data-bs-target="#reportAbuseModal">
+                      <i class="fa-solid fa-flag me-1"></i> Report suspicious or incorrect listing
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        loadSmartMatches(effectiveType);
+
+      } catch (err) {
+        container.innerHTML = `<div class="alert alert-danger">Failed to load item details: ${err.message}</div>`;
+      }
+    }
+
+    function scrollToMatches() {
+      const section = document.getElementById('smartMatchesSection');
+      if (section) section.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function loadSmartMatches(effectiveType) {
+      const section = document.getElementById('smartMatchesSection');
+      const grid = document.getElementById('smartMatchesGrid');
+
+      try {
+        const res = await API.get(`/matches/${itemId}?type=${effectiveType}`);
+        if (res.success && res.data && res.data.length > 0) {
+          section.classList.remove('d-none');
+          grid.innerHTML = res.data.map(match => {
+            const isTargetFound = effectiveType === 'lost';
+            const matchedBadge = isTargetFound ? 'FOUND ITEM' : 'LOST REPORT';
+            const claimOrViewBtn = isTargetFound
+              ? `<a href="/claim.html?itemId=${match.matchedItem._id}&itemModel=FoundItem" class="btn btn-secondary-custom btn-sm w-100 fw-bold rounded-pill">
+                  <i class="fa-solid fa-hand-holding-heart me-1"></i> Claim Match ("This Is Mine")
+                </a>`
+              : `<a href="/item.html?type=lost&id=${match.matchedItem._id}" class="btn btn-primary-custom btn-sm w-100 fw-bold rounded-pill">
+                  <i class="fa-solid fa-eye me-1"></i> View Lost Item Report
+                </a>`;
+
+            return `
+              <div class="col-md-6 col-lg-4">
+                <div class="card-custom h-100 p-3 shadow-md border-2 ${match.isHighConfidence ? 'border-primary' : ''}">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="match-score-badge">
+                      <i class="fa-solid fa-bolt"></i> ${match.matchScore}% Confidence
+                    </span>
+                    <span class="badge-status ${isTargetFound ? 'badge-found' : 'badge-lost'}">${matchedBadge}</span>
+                  </div>
+
+                  <h5 class="fw-bold text-dark mb-1 text-truncate">${match.matchedItem.title}</h5>
+                  <p class="text-muted small text-truncate mb-2">${match.matchedItem.description || ''}</p>
+                  
+                  <div class="small p-2 bg-light rounded border mb-3">
+                    <strong class="d-block mb-1 text-dark">Matching Factors:</strong>
+                    <ul class="mb-0 ps-3 text-muted small">
+                      ${match.matchingFactors.map(f => `<li>${f}</li>`).join('')}
+                    </ul>
+                  </div>
+
+                  ${claimOrViewBtn}
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          if (window.location.hash === '#matches') {
+            setTimeout(scrollToMatches, 300);
+          }
+        } else {
+          // If no high matches for lost item, show helpful zero matches notice
+          if (effectiveType === 'lost') {
+            section.classList.remove('d-none');
+            grid.innerHTML = `
+              <div class="col-12">
+                <div class="card-custom p-4 text-center border-dashed">
+                  <i class="fa-solid fa-wand-magic-sparkles text-muted fs-3 mb-2"></i>
+                  <h6 class="fw-bold text-dark mb-1">No automatic findings match this item yet</h6>
+                  <p class="text-muted small mb-0">Our matching engine constantly compares new campus security deposits with this report. You'll receive an in-app and email notification as soon as a potential match is found.</p>
+                </div>
+              </div>
+            `;
+          }
+        }
+      } catch(e) {
+        console.warn('Smart matches load error:', e);
+      }
+    }
+
+    document.getElementById('abuseForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const res = await API.post('/reports', {
+          itemId,
+          itemModel: currentEffectiveType === 'lost' ? 'LostItem' : 'FoundItem',
+          reason: document.getElementById('abuseReason').value,
+          customReason: document.getElementById('abuseCustom').value,
+        });
+        if (res.success) {
+          API.showToast('Report submitted for moderator review', 'success');
+          bootstrap.Modal.getInstance(document.getElementById('reportAbuseModal')).hide();
+        }
+      } catch (err) {
+        API.showToast(err.message || 'Report failed', 'error');
+      }
+    });
+  </script>
+</body>
+</html>
