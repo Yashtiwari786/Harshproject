@@ -11,9 +11,6 @@ const connectDB = require('./config/db');
 // Load environment variables
 dotenv.config();
 
-// Initialize Database connection
-connectDB();
-
 const app = express();
 
 // Security Middlewares
@@ -122,12 +119,14 @@ const PORT = process.env.PORT || 5000;
 
 // Listen only when run directly (local node execution). On Vercel, app is exported as serverless handler.
 if (process.env.VERCEL !== '1' && require.main === module) {
-  const server = app.listen(PORT, () => {
-    console.log(`\n======================================================`);
-    console.log(`🚀 Lost2Found Campus Server running on port ${PORT}`);
-    console.log(`URL: http://localhost:${PORT}`);
-    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`======================================================\n`);
+  connectDB().then(() => {
+    app.listen(PORT, () => {
+      console.log(`\n======================================================`);
+      console.log(`🚀 Lost2Found Campus Server running on port ${PORT}`);
+      console.log(`URL: http://localhost:${PORT}`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`======================================================\n`);
+    });
   });
 }
 
