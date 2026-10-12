@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Lost2Found — College Campus Lost & Found Management System
 
 > **Tagline:** Lost it? Found it? Get it back.
@@ -243,3 +244,7 @@ npm test
 
 ## 📄 License
 This project is open source and available under the [ISC License](LICENSE).
+=======
+# Harshproject
+ college lost and find  software
+>>>>>>> 32586ce8a2b65129e8276816b42facb882410c1f
