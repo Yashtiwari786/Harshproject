@@ -1,6 +1,10 @@
 // Vercel Serverless Function entry point
-// Explicitly load environment variables before requiring backend
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+// IMPORTANT: Load env vars FIRST before any other require
+const path = require('path');
+const dotenv = require('dotenv');
+
+// Load .env from project root (works locally; on Vercel, env vars are injected natively)
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 let app;
 let initError = null;
@@ -9,7 +13,7 @@ try {
   app = require('../backend/server');
 } catch (err) {
   initError = err;
-  console.error('[Vercel Boot Error]:', err.message, err.stack);
+  console.error('[Vercel Boot Error]:', err.message, '\n', err.stack);
 }
 
 module.exports = async (req, res) => {

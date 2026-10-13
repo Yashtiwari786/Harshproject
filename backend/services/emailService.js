@@ -1,16 +1,23 @@
 const nodemailer = require('nodemailer');
 
 /**
- * Configure Nodemailer Transporter
- * Supports Gmail with App Password, or standard SMTP.
+ * Configure Nodemailer Transporter — created lazily so env vars are guaranteed loaded
  */
-const createTransporter = () => {
-  const gmailUser = process.env.GMAIL_USER || (process.env.SMTP_USER && process.env.SMTP_USER.includes('@gmail.com') ? process.env.SMTP_USER : null);
+let _transporter = null;
+
+const getTransporter = () => {
+  if (_transporter) return _transporter;
+
+  const gmailUser =
+    process.env.GMAIL_USER ||
+    (process.env.SMTP_USER && process.env.SMTP_USER.includes('@gmail.com')
+      ? process.env.SMTP_USER
+      : null);
   const gmailAppPass = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASSWORD;
 
   // 1. Direct Gmail Configuration (Preferred when app password provided)
   if (gmailUser && gmailAppPass) {
-    return nodemailer.createTransport({
+    _transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: gmailUser,
@@ -20,11 +27,13 @@ const createTransporter = () => {
         rejectUnauthorized: false,
       },
     });
+    console.log(`[Nodemailer] Gmail transporter created for: ${gmailUser}`);
+    return _transporter;
   }
 
   // 2. Standard Custom SMTP Configuration
   if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
-    return nodemailer.createTransport({
+    _transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT || '587', 10),
       secure: process.env.SMTP_PORT === '465',
@@ -36,26 +45,13 @@ const createTransporter = () => {
         rejectUnauthorized: false,
       },
     });
+    console.log(`[Nodemailer] SMTP transporter created for host: ${process.env.SMTP_HOST}`);
+    return _transporter;
   }
 
+  console.warn('[Nodemailer] No Gmail App Password or SMTP config found in environment variables. Emails will log to console only.');
   return null;
 };
-
-const transporter = createTransporter();
-
-// Check transporter on startup (skipped on Vercel to avoid cold-start latency)
-if (transporter && process.env.VERCEL !== '1') {
-  transporter.verify((error) => {
-    if (error) {
-      console.warn(`[Nodemailer Notice] Transporter configured but verify returned: ${error.message}`);
-      console.info(`[Nodemailer Tip] For Gmail, ensure you use a 16-character Google App Password (not your normal password).`);
-    } else {
-      console.log(`[Nodemailer Ready] ✅ Live email transport connected and ready to send OTP emails.`);
-    }
-  });
-} else if (!transporter) {
-  console.info(`[Nodemailer Info] No Gmail App Password or SMTP set in .env. Emails & OTPs will log to the terminal console during development.`);
-}
 
 /**
  * Send an email with fallback to development console logger
@@ -63,15 +59,16 @@ if (transporter && process.env.VERCEL !== '1') {
 const sendEmail = async ({ to, subject, html, text }) => {
   const fromEmail = process.env.GMAIL_USER || process.env.FROM_EMAIL || 'noreply@college.edu';
   const fromName = 'Lost2Found Campus';
+  const transporter = getTransporter();
 
   if (!transporter) {
-    console.log(`\n╔════════════════════════════════════════════════════════════════════════════════╗`);
-    console.log(`║ 📧 [DEV EMAIL SIMULATOR]                                                       ║`);
-    console.log(`║ TO:      ${to.padEnd(68)} ║`);
-    console.log(`║ SUBJECT: ${subject.padEnd(68)} ║`);
-    console.log(`╟────────────────────────────────────────────────────────────────────────────────╢`);
+    console.log(`\n╔════════════════════════════════════════════════════════════╗`);
+    console.log(`║ 📧 [DEV EMAIL SIMULATOR - No SMTP configured]              ║`);
+    console.log(`║ TO:      ${to.padEnd(50)} ║`);
+    console.log(`║ SUBJECT: ${subject.padEnd(50)} ║`);
+    console.log(`╟────────────────────────────────────────────────────────────╢`);
     console.log(text || html.replace(/<[^>]*>?/gm, ' '));
-    console.log(`╚════════════════════════════════════════════════════════════════════════════════╝\n`);
+    console.log(`╚════════════════════════════════════════════════════════════╝\n`);
     return { success: true, simulated: true };
   }
 
@@ -83,12 +80,12 @@ const sendEmail = async ({ to, subject, html, text }) => {
       text: text || html.replace(/<[^>]*>?/gm, ' '),
       html,
     });
-    console.log(`[Email Sent] ✅ Live email successfully delivered to ${to} (Message ID: ${info.messageId})`);
+    console.log(`[Email Sent] ✅ Email delivered to ${to} (Message ID: ${info.messageId})`);
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error(`[Email Error] Failed to send email to ${to}:`, error.message);
-    // Even if sending fails (e.g. invalid app pass), log to console so testing is never blocked
-    console.log(`[Fallback Terminal Notice] Email content for ${to}:\n${text || html}`);
+    // Log fallback so testing is never blocked
+    console.log(`[Fallback Log] OTP/Email for ${to}:\n${text || html}`);
     return { success: false, error: error.message };
   }
 };
@@ -122,7 +119,7 @@ const sendOTPEmail = async (email, otpCode) => {
       <div class="card">
         <div class="header">
           <h1>Lost2Found</h1>
-          <p>Campus Lost & Found Verification</p>
+          <p>Campus Lost &amp; Found Verification</p>
         </div>
         <div class="body">
           <div class="greeting">Hello,</div>
@@ -131,14 +128,14 @@ const sendOTPEmail = async (email, otpCode) => {
           </div>
           <div class="otp-container">
             <div class="otp-code">${otpCode}</div>
-            <div class="otp-note">Valid for 10 minutes • Do not share this code</div>
+            <div class="otp-note">Valid for 10 minutes &bull; Do not share this code</div>
           </div>
           <div class="text">
             If you did not request this verification code, you can safely ignore this email.
           </div>
         </div>
         <div class="footer">
-          © 2026 Lost2Found Campus Management System. All rights reserved.
+          &copy; 2026 Lost2Found Campus Management System. All rights reserved.
         </div>
       </div>
     </body>
@@ -191,7 +188,7 @@ const sendHandoverEmail = async (email, claimantName, itemTitle, handoverCode, l
           </div>
         </div>
         <div class="footer">
-          © 2026 Lost2Found Campus System
+          &copy; 2026 Lost2Found Campus System
         </div>
       </div>
     </body>

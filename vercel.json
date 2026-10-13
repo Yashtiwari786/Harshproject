@@ -1,95 +1,9 @@
 {
   "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "api/index.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/",
-      "dest": "/public/index.html"
-    },
-    {
-      "src": "/login",
-      "dest": "/public/login.html"
-    },
-    {
-      "src": "/register",
-      "dest": "/public/register.html"
-    },
-    {
-      "src": "/verify",
-      "dest": "/public/verify.html"
-    },
-    {
-      "src": "/dashboard",
-      "dest": "/public/dashboard.html"
-    },
-    {
-      "src": "/lost-items",
-      "dest": "/public/lost-items.html"
-    },
-    {
-      "src": "/found-items",
-      "dest": "/public/found-items.html"
-    },
-    {
-      "src": "/report-lost",
-      "dest": "/public/report-lost.html"
-    },
-    {
-      "src": "/report-found",
-      "dest": "/public/report-found.html"
-    },
-    {
-      "src": "/item",
-      "dest": "/public/item.html"
-    },
-    {
-      "src": "/claim",
-      "dest": "/public/claim.html"
-    },
-    {
-      "src": "/notifications",
-      "dest": "/public/notifications.html"
-    },
-    {
-      "src": "/profile",
-      "dest": "/public/profile.html"
-    },
-    {
-      "src": "/how-it-works",
-      "dest": "/public/how-it-works.html"
-    },
-    {
-      "src": "/about",
-      "dest": "/public/about.html"
-    },
-    {
-      "src": "/admin",
-      "dest": "/public/admin/dashboard.html"
-    },
-    {
-      "src": "/admin/(.*)",
-      "dest": "/public/admin/$1"
-    },
-    {
-      "src": "/(css|js|uploads)/(.*)",
-      "dest": "/public/$1/$2"
-    },
-    {
-      "src": "/(.*)\\.html",
-      "dest": "/public/$1.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/public/index.html"
+      "source": "/(.*)",
+      "destination": "/api/index.js"
     }
   ]
 }

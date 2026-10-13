@@ -3,42 +3,47 @@ const mongoose = require('mongoose');
 // Enable buffer commands so queries during connection setup queue safely
 mongoose.set('bufferCommands', true);
 
-let cachedConnectionPromise = null;
+let connectionPromise = null;
 
-const DEFAULT_ATLAS_URI = 'mongodb+srv://dvvnlmdoffice_db_user:tIOBLubR83JVDj02@cluster0.gy30quf.mongodb.net/lost2found?retryWrites=true&w=majority&appName=Cluster0';
+const DEFAULT_ATLAS_URI =
+  'mongodb+srv://dvvnlmdoffice_db_user:tIOBLubR83JVDj02@cluster0.gy30quf.mongodb.net/lost2found?retryWrites=true&w=majority&appName=Cluster0';
 
 const connectDB = async () => {
-  // If already connected, reuse existing connection immediately
+  // Already connected — return immediately (critical for serverless reuse)
   if (mongoose.connection.readyState === 1) {
     return true;
   }
 
-  // If a connection attempt is currently in progress, wait for it
-  if (cachedConnectionPromise) {
+  // If a connection attempt is already in progress, wait for it
+  if (connectionPromise) {
     try {
-      await cachedConnectionPromise;
+      await connectionPromise;
       return mongoose.connection.readyState === 1;
     } catch (e) {
-      cachedConnectionPromise = null;
+      connectionPromise = null;
     }
   }
 
   const mongoUri = process.env.MONGO_URI || DEFAULT_ATLAS_URI;
 
-  try {
-    cachedConnectionPromise = mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 4000,
-      socketTimeoutMS: 10000,
-      tlsAllowInvalidCertificates: true,
-    });
+  console.log(`[Database] Connecting to MongoDB Atlas...`);
 
-    const conn = await cachedConnectionPromise;
-    console.log(`[Database] MongoDB Atlas Connected: ${conn.connection.host}`);
+  connectionPromise = mongoose.connect(mongoUri, {
+    serverSelectionTimeoutMS: 10000,  // 10 seconds — more generous for Vercel cold starts
+    socketTimeoutMS: 45000,
+    connectTimeoutMS: 10000,
+    maxPoolSize: 5,                   // Limit pool for serverless
+    minPoolSize: 0,
+  });
+
+  try {
+    const conn = await connectionPromise;
+    console.log(`[Database] ✅ MongoDB Atlas Connected: ${conn.connection.host}`);
     return true;
   } catch (error) {
-    cachedConnectionPromise = null;
-    console.warn(`[Database Notice] MongoDB Atlas connection timed out (${error.message}). Resilient fallback storage active.`);
-    return false;
+    connectionPromise = null;
+    console.error(`[Database] ❌ MongoDB connection failed: ${error.message}`);
+    throw error; // Propagate so middleware can return 503
   }
 };
 

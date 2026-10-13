@@ -7,8 +7,9 @@ const helmet = require('helmet');
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
-// Load environment variables
-dotenv.config();
+// Load environment variables — works both locally and on Vercel (where env vars are injected natively)
+dotenv.config({ path: path.join(__dirname, '../.env') });
+dotenv.config(); // Fallback to default .env in cwd
 
 const app = express();
 
@@ -21,21 +22,14 @@ app.use(
     contentSecurityPolicy: false, // Allowed for loading Bootstrap CDNs, FontAwesome, Chart.js & inline scripts
   })
 );
-app.use(cors());
+
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Ensure MongoDB Atlas is connected before executing any API route (crucial for Serverless / Vercel cold starts)
-app.use('/api', async (req, res, next) => {
-  try {
-    if (mongoose.connection.readyState !== 1) {
-      await connectDB();
-    }
-  } catch (err) {
-    console.warn('[Database Connection Middleware Notice]:', err.message);
-  }
-  next();
-});
 
 // Serve static frontend files and uploaded media
 const staticDir = fs.existsSync(path.join(__dirname, '../public'))
@@ -43,6 +37,24 @@ const staticDir = fs.existsSync(path.join(__dirname, '../public'))
   : path.join(__dirname, '../frontend');
 app.use(express.static(staticDir));
 app.use('/uploads', express.static(path.join(staticDir, 'uploads')));
+
+// Ensure MongoDB Atlas is connected before processing any API route
+// On Vercel serverless cold starts, each request may need to reconnect
+app.use('/api', async (req, res, next) => {
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      await connectDB();
+    }
+    next();
+  } catch (err) {
+    console.error('[DB Middleware] Connection failed:', err.message);
+    return res.status(503).json({
+      success: false,
+      message: 'Database temporarily unavailable. Please try again in a moment.',
+      error: err.message,
+    });
+  }
+});
 
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
@@ -74,13 +86,17 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Health check endpoint
+// Health check endpoint (no DB required)
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Lost2Found API is running',
     dbState: mongoose.connection.readyState,
+    dbStateName: ['disconnected', 'connected', 'connecting', 'disconnecting'][mongoose.connection.readyState] || 'unknown',
     environment: process.env.NODE_ENV || 'development',
+    hasMongoUri: !!process.env.MONGO_URI,
+    hasJwtSecret: !!process.env.JWT_SECRET,
+    hasGmailUser: !!process.env.GMAIL_USER,
     timestamp: new Date().toISOString(),
   });
 });
@@ -131,7 +147,7 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 // Listen only when run directly (local node execution). On Vercel, app is exported as serverless handler.
-if (process.env.VERCEL !== '1' && require.main === module) {
+if (require.main === module) {
   connectDB().then(() => {
     app.listen(PORT, () => {
       console.log(`\n======================================================`);
@@ -140,6 +156,9 @@ if (process.env.VERCEL !== '1' && require.main === module) {
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`======================================================\n`);
     });
+  }).catch((err) => {
+    console.error('Failed to connect to database on startup:', err.message);
+    process.exit(1);
   });
 }
 
