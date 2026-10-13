@@ -5,7 +5,10 @@
   "license": "ISC",
   "author": "Lost2Found Team",
   "type": "commonjs",
-  "main": "backend/server.js",
+  "main": "api/index.js",
+  "engines": {
+    "node": ">=20.x"
+  },
   "scripts": {
     "build": "echo 'Static build ready'",
     "start": "node backend/server.js",
