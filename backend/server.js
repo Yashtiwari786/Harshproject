@@ -74,6 +74,17 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/admin', adminRoutes);
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Lost2Found API is running',
+    dbState: mongoose.connection.readyState,
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Public Category & Location Endpoints for dropdowns
 app.get('/api/categories', async (req, res, next) => {
   try {
