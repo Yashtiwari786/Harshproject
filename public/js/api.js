@@ -19,12 +19,15 @@ class ApiClient {
   static async request(endpoint, options = {}) {
     const isFormData = options.body instanceof FormData;
     const headers = { ...this.getHeaders(isFormData), ...(options.headers || {}) };
+    // suppressAutoLogout: set true for background/optional requests that shouldn't kick the user out
+    const suppressAutoLogout = options.suppressAutoLogout === true;
 
     const config = {
       method: options.method || 'GET',
       headers,
       ...options,
     };
+    delete config.suppressAutoLogout;
 
     if (options.body && !isFormData && typeof options.body === 'object') {
       config.body = JSON.stringify(options.body);
@@ -35,18 +38,18 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
-        if (response.status === 401) {
+        // Only auto-logout on 401 for explicit user-triggered requests, not background polls
+        if (response.status === 401 && !suppressAutoLogout) {
           localStorage.removeItem('l2f_token');
           localStorage.removeItem('l2f_user');
           const p = window.location.pathname.toLowerCase();
-          const isProtectedPage = 
+          const isProtectedPage =
             p.includes('dashboard') ||
             p.includes('profile') ||
             p.includes('report-lost') ||
             p.includes('report-found') ||
             p.includes('claim.html') ||
             p.includes('/claim') ||
-            p.includes('notifications') ||
             p.includes('/admin');
 
           if (isProtectedPage && !p.includes('login') && !p.includes('register')) {

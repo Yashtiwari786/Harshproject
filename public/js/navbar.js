@@ -231,7 +231,7 @@ function renderFooter() {
 async function checkUnreadNotifications() {
   if (!Auth.isLoggedIn()) return;
   try {
-    const res = await API.get('/notifications');
+    const res = await API.request('/notifications', { method: 'GET', suppressAutoLogout: true });
     if (res.success && res.unreadCount > 0) {
       const badge = document.getElementById('unreadNavBadge');
       if (badge) {
@@ -240,6 +240,6 @@ async function checkUnreadNotifications() {
       }
     }
   } catch (e) {
-    // Silent fail if unauthorized token
+    // Silent fail — never kick the user out for a background notification fetch
   }
 }
