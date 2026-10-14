@@ -155,46 +155,7 @@ college lost and found/
 
 ---
 
-## ⚡ Quick Start & Installation
 
-### 1. Clone & Install Dependencies
-```bash
-git clone https://github.com/your-username/lost2found.git
-cd lost2found
-npm install
-```
-
-### 2. Configure Environment Variables
-Copy `.env.example` to `.env` and configure your credentials:
-```env
-PORT=5000
-NODE_ENV=development
-MONGO_URI=mongodb://127.0.0.1:27017/lost2found
-JWT_SECRET=super_secret_lost2found_jwt_key_2026
-
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASSWORD=your_app_password
-
-COLLEGE_EMAIL_DOMAIN=college.edu
-MATCH_THRESHOLD=70
-```
-
-### 3. Seed Database with Demo Accounts
-Populate default categories, campus locations, demo users, sample items, and matching scenarios:
-```bash
-npm run seed
-```
-
-#### Demo User Credentials (Password for all: `Password123!`)
-- 🛡️ **ADMIN:** `admin@college.edu`
-- 👮 **STAFF / SECURITY:** `staff@college.edu`
-- 🎓 **STUDENT:** `student@college.edu`
 
 ### 4. Run Development Server
 ```bash
