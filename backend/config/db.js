@@ -5,9 +5,6 @@ mongoose.set('bufferCommands', true);
 
 let connectionPromise = null;
 
-const DEFAULT_ATLAS_URI =
-  'mongodb+srv://dvvnlmdoffice_db_user:tIOBLubR83JVDj02@cluster0.gy30quf.mongodb.net/lost2found?retryWrites=true&w=majority&appName=Cluster0';
-
 const connectDB = async () => {
   // Already connected — return immediately (critical for serverless reuse)
   if (mongoose.connection.readyState === 1) {
@@ -24,15 +21,23 @@ const connectDB = async () => {
     }
   }
 
-  const mongoUri = process.env.MONGO_URI || DEFAULT_ATLAS_URI;
+  // MONGO_URI must be set via environment variables only — never hardcode credentials in source code
+  const mongoUri = process.env.MONGO_URI;
+
+  if (!mongoUri) {
+    throw new Error(
+      'MONGO_URI environment variable is not set. ' +
+      'Add it to your .env file locally, or to Vercel Environment Variables in the dashboard.'
+    );
+  }
 
   console.log(`[Database] Connecting to MongoDB Atlas...`);
 
   connectionPromise = mongoose.connect(mongoUri, {
-    serverSelectionTimeoutMS: 10000,  // 10 seconds — more generous for Vercel cold starts
+    serverSelectionTimeoutMS: 10000,
     socketTimeoutMS: 45000,
     connectTimeoutMS: 10000,
-    maxPoolSize: 5,                   // Limit pool for serverless
+    maxPoolSize: 5,
     minPoolSize: 0,
   });
 
@@ -43,7 +48,7 @@ const connectDB = async () => {
   } catch (error) {
     connectionPromise = null;
     console.error(`[Database] ❌ MongoDB connection failed: ${error.message}`);
-    throw error; // Propagate so middleware can return 503
+    throw error;
   }
 };
 
